@@ -3,8 +3,11 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Nonlinear.V2 where
 
@@ -14,25 +17,31 @@ import Data.Distributive
 import Data.Functor.Classes
 import Data.Functor.Rep (Representable)
 import GHC.Generics (Generic, Generic1)
+import Lens.Micro.Internal (Field1 (..), Field2 (..))
+import Lens.Micro.TH
 
-data V2 a = V2 {v21 :: !a, v22 :: !a}
+data V2 a = V2 {_v2x :: !a, _v2y :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
+  -- TODO Maybe use `linear`'s approach of using the lens as the `Rep`?'
   deriving anyclass (Representable)
 
 instance Distributive V2 where
-  distribute f = V2 (v21 <$> f) (v22 <$> f)
+  distribute f = V2 (_v2x <$> f) (_v2y <$> f)
+
+makeLenses ''V2
+
+instance Field1 (V2 a) (V2 a) a a where _1 = v2x
+
+instance Field2 (V2 a) (V2 a) a a where _2 = v2y
 
 instance Applicative V2 where
   pure a = V2 a a
-  V2 f1 f2 <*> V2 a1 a2 = V2 (f1 a1) (f2 a2)
+  V2 fx fy <*> V2 x y = V2 (fx x) (fy y)
 
 instance Monad V2 where
-  V2 a b >>= f = V2 a' b'
-    where
-      V2 a' _ = f a
-      V2 _ b' = f b
+  V2 x y >>= f = V2 (_v2x $ f x) (_v2y $ f y)
 
-instance Semigroup a => Semigroup (V2 a) where V2 a b <> V2 a' b' = V2 (a <> a') (b <> b')
+instance Semigroup x => Semigroup (V2 x) where V2 x y <> V2 x' y' = V2 (x <> x') (y <> y')
 
 instance Monoid a => Monoid (V2 a) where mempty = V2 mempty mempty
 
@@ -98,8 +107,11 @@ instance Floating a => Floating (V2 a) where
   acosh = fmap acosh
   {-# INLINE acosh #-}
 
-instance Eq1 V2 where liftEq f (V2 a b) (V2 a' b') = f a a' && f b b'
+instance Eq1 V2 where liftEq f (V2 x y) (V2 x' y') = f x x' && f y y'
 
-instance Ord1 V2 where liftCompare f (V2 a b) (V2 a' b') = f a a' <> f b b'
+instance Ord1 V2 where liftCompare f (V2 x y) (V2 x' y') = f x x' <> f y y'
 
-instance Show1 V2 where liftShowsPrec f _ d (V2 a b) = showsBinaryWith f f "V2" d a b
+instance Show1 V2 where
+  liftShowsPrec f _ d (V2 x y) =
+    showParen (d > 10) $
+      showString "V2 " . f 11 x . showChar ' ' . f 11 y

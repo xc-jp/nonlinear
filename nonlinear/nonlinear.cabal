@@ -24,6 +24,7 @@ library
     , base
     , distributive
     , microlens
+    , microlens-th
     , vector
 
   ghc-options:      -Wall -Wno-name-shadowing -haddock

@@ -3,8 +3,11 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Nonlinear.V3 where
 
@@ -14,26 +17,33 @@ import Data.Distributive
 import Data.Functor.Classes
 import Data.Functor.Rep (Representable)
 import GHC.Generics (Generic, Generic1)
+import Lens.Micro.Internal (Field1 (..), Field2 (..), Field3 (..))
+import Lens.Micro.TH
 
-data V3 a = V3 {v31 :: !a, v32 :: !a, v33 :: !a}
+data V3 a = V3 {_v3x :: !a, _v3y :: !a, _v3z :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
+  -- TODO Maybe use `linear`'s approach of using the lens as the `Rep`?'
   deriving anyclass (Representable)
 
 instance Distributive V3 where
-  distribute f = V3 (v31 <$> f) (v32 <$> f) (v33 <$> f)
+  distribute f = V3 (_v3x <$> f) (_v3y <$> f) (_v3z <$> f)
+
+makeLenses ''V3
+
+instance Field1 (V3 a) (V3 a) a a where _1 = v3x
+
+instance Field2 (V3 a) (V3 a) a a where _2 = v3y
+
+instance Field3 (V3 a) (V3 a) a a where _3 = v3z
 
 instance Applicative V3 where
   pure a = V3 a a a
-  V3 f1 f2 f3 <*> V3 a1 a2 a3 = V3 (f1 a1) (f2 a2) (f3 a3)
+  V3 fx fy fz <*> V3 x y z = V3 (fx x) (fy y) (fz z)
 
 instance Monad V3 where
-  V3 a b c >>= f = V3 a' b' c'
-    where
-      V3 a' _ _ = f a
-      V3 _ b' _ = f b
-      V3 _ _ c' = f c
+  V3 x y z >>= f = V3 (_v3x $ f x) (_v3y $ f y) (_v3z $ f z)
 
-instance Semigroup a => Semigroup (V3 a) where V3 a b c <> V3 a' b' c' = V3 (a <> a') (b <> b') (c <> c')
+instance Semigroup x => Semigroup (V3 x) where V3 x y z <> V3 x' y' z' = V3 (x <> x') (y <> y') (z <> z')
 
 instance Monoid a => Monoid (V3 a) where mempty = V3 mempty mempty mempty
 
@@ -99,11 +109,11 @@ instance Floating a => Floating (V3 a) where
   acosh = fmap acosh
   {-# INLINE acosh #-}
 
-instance Eq1 V3 where liftEq f (V3 a b c) (V3 a' b' c') = f a a' && f b b' && f c c'
+instance Eq1 V3 where liftEq f (V3 x y z) (V3 x' y' z') = f x x' && f y y' && f z z'
 
-instance Ord1 V3 where liftCompare f (V3 a b c) (V3 a' b' c') = f a a' <> f b b' <> f c c'
+instance Ord1 V3 where liftCompare f (V3 x y z) (V3 x' y' z') = f x x' <> f y y' <> f z z'
 
 instance Show1 V3 where
-  liftShowsPrec f _ d (V3 a b c) =
+  liftShowsPrec f _ d (V3 x y z) =
     showParen (d > 10) $
-      showString "V3 " . f 11 a . showChar ' ' . f 11 b . showChar ' ' . f 11 c
+      showString "V3 " . f 11 x . showChar ' ' . f 11 y . showChar ' ' . f 11 z

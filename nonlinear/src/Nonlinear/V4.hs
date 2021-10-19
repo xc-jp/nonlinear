@@ -3,8 +3,11 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Nonlinear.V4 where
 
@@ -14,27 +17,35 @@ import Data.Distributive
 import Data.Functor.Classes
 import Data.Functor.Rep (Representable)
 import GHC.Generics (Generic, Generic1)
+import Lens.Micro.Internal (Field1 (..), Field2 (..), Field3 (..), Field4 (..))
+import Lens.Micro.TH
 
-data V4 a = V4 {v41 :: !a, v42 :: !a, v43 :: !a, v44 :: !a}
+data V4 a = V4 {_v4x :: !a, _v4y :: !a, _v4z :: !a, _v4w :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
+  -- TODO Maybe use `linear`'s approach of using the lens as the `Rep`?'
   deriving anyclass (Representable)
 
 instance Distributive V4 where
-  distribute f = V4 (v41 <$> f) (v42 <$> f) (v43 <$> f) (v44 <$> f)
+  distribute f = V4 (_v4x <$> f) (_v4y <$> f) (_v4z <$> f) (_v4w <$> f)
+
+makeLenses ''V4
+
+instance Field1 (V4 a) (V4 a) a a where _1 = v4x
+
+instance Field2 (V4 a) (V4 a) a a where _2 = v4y
+
+instance Field3 (V4 a) (V4 a) a a where _3 = v4z
+
+instance Field4 (V4 a) (V4 a) a a where _4 = v4w
 
 instance Applicative V4 where
   pure a = V4 a a a a
-  V4 f1 f2 f3 f4 <*> V4 a1 a2 a3 a4 = V4 (f1 a1) (f2 a2) (f3 a3) (f4 a4)
+  V4 fx fy fz fw <*> V4 x y z w = V4 (fx x) (fy y) (fz z) (fw w)
 
 instance Monad V4 where
-  V4 a b c d >>= f = V4 a' b' c' d'
-    where
-      V4 a' _ _ _ = f a
-      V4 _ b' _ _ = f b
-      V4 _ _ c' _ = f c
-      V4 _ _ _ d' = f d
+  V4 x y z w >>= f = V4 (_v4x $ f x) (_v4y $ f y) (_v4z $ f z) (_v4w $ f w)
 
-instance Semigroup a => Semigroup (V4 a) where V4 a b c d <> V4 a' b' c' d' = V4 (a <> a') (b <> b') (c <> c') (d <> d')
+instance Semigroup x => Semigroup (V4 x) where V4 x y z w <> V4 x' y' z' w' = V4 (x <> x') (y <> y') (z <> z') (w <> w')
 
 instance Monoid a => Monoid (V4 a) where mempty = V4 mempty mempty mempty mempty
 
@@ -100,11 +111,11 @@ instance Floating a => Floating (V4 a) where
   acosh = fmap acosh
   {-# INLINE acosh #-}
 
-instance Eq1 V4 where liftEq f (V4 a b c d) (V4 a' b' c' d') = f a a' && f b b' && f c c' && f d d'
+instance Eq1 V4 where liftEq f (V4 x y z w) (V4 x' y' z' w') = f x x' && f y y' && f z z' && f w w'
 
-instance Ord1 V4 where liftCompare f (V4 a b c d) (V4 a' b' c' d') = f a a' <> f b b' <> f c c' <> f d d'
+instance Ord1 V4 where liftCompare f (V4 x y z w) (V4 x' y' z' w') = f x x' <> f y y' <> f z z' <> f w w'
 
 instance Show1 V4 where
-  liftShowsPrec f _ z (V4 a b c d) =
-    showParen (z > 10) $
-      showString "V4 " . f 11 a . showChar ' ' . f 11 b . showChar ' ' . f 11 c . showChar ' ' . f 11 d
+  liftShowsPrec f _ d (V4 x y z w) =
+    showParen (d > 10) $
+      showString "V4 " . f 11 x . showChar ' ' . f 11 y . showChar ' ' . f 11 z . showChar ' ' . f 11 w
