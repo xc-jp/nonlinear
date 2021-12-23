@@ -114,6 +114,7 @@ instance Show1 V2 where
 
 class R1 t => R2 t where
   _y :: Lens' (t a) a
+  _xy :: Lens' (t a) (V2 a)
 
 instance R1 V2 where
   {-# INLINE _x #-}
@@ -122,3 +123,5 @@ instance R1 V2 where
 instance R2 V2 where
   {-# INLINE _y #-}
   _y = _1
+  {-# INLINE _xy #-}
+  _xy = id

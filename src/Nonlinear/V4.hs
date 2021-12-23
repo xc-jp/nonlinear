@@ -18,8 +18,8 @@ import GHC.Generics (Generic, Generic1)
 import Lens.Micro.Internal (Field1 (..), Field2 (..), Field3 (..), Field4 (..))
 import Lens.Micro.Type (Lens')
 import Nonlinear.V1 (R1 (..))
-import Nonlinear.V2 (R2 (..))
-import Nonlinear.V3 (R3 (..))
+import Nonlinear.V2 (R2 (..), V2 (..))
+import Nonlinear.V3 (R3 (..), V3 (..))
 
 data V4 a = V4 {v4x :: !a, v4y :: !a, v4z :: !a, v4w :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
@@ -124,6 +124,7 @@ instance Show1 V4 where
 
 class R3 t => R4 t where
   _w :: Lens' (t a) a
+  _xyzw :: Lens' (t a) (V4 a)
 
 instance R1 V4 where
   {-# INLINE _x #-}
@@ -132,11 +133,17 @@ instance R1 V4 where
 instance R2 V4 where
   {-# INLINE _y #-}
   _y = _2
+  {-# INLINE _xy #-}
+  _xy f (V4 x y z w) = (\(V2 x' y') -> V4 x' y' z w) <$> f (V2 x y)
 
 instance R3 V4 where
   {-# INLINE _z #-}
   _z = _3
+  {-# INLINE _xyz #-}
+  _xyz f (V4 x y z w) = (\(V3 x' y' z') -> V4 x' y' z' w) <$> f (V3 x y z)
 
 instance R4 V4 where
   {-# INLINE _w #-}
   _w = _4
+  {-# INLINE _xyzw #-}
+  _xyzw = id

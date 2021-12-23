@@ -18,7 +18,7 @@ import GHC.Generics (Generic, Generic1)
 import Lens.Micro.Internal (Field1 (..), Field2 (..), Field3 (..))
 import Lens.Micro.Type (Lens')
 import Nonlinear.V1 (R1 (..))
-import Nonlinear.V2 (R2 (..))
+import Nonlinear.V2 (R2 (..), V2 (..))
 
 data V3 a = V3 {v3x :: !a, v3y :: !a, v3z :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
@@ -119,6 +119,7 @@ instance Show1 V3 where
 
 class R2 t => R3 t where
   _z :: Lens' (t a) a
+  _xyz :: Lens' (t a) (V3 a)
 
 instance R1 V3 where
   {-# INLINE _x #-}
@@ -127,7 +128,11 @@ instance R1 V3 where
 instance R2 V3 where
   {-# INLINE _y #-}
   _y = _2
+  {-# INLINE _xy #-}
+  _xy f (V3 x y z) = (\(V2 x' y') -> V3 x' y' z) <$> f (V2 x y)
 
 instance R3 V3 where
   {-# INLINE _z #-}
   _z = _3
+  {-# INLINE _xyz #-}
+  _xyz = id
