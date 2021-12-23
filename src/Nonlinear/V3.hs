@@ -13,6 +13,7 @@ module Nonlinear.V3 where
 
 import Control.Applicative
 import Data.Data (Data, Typeable)
+import Data.Functor ((<&>))
 import Data.Functor.Classes
 import GHC.Generics (Generic, Generic1)
 import Lens.Micro.Internal (Field1 (..), Field2 (..), Field3 (..))
@@ -136,3 +137,25 @@ instance R3 V3 where
   _z = _3
   {-# INLINE _xyz #-}
   _xyz = id
+
+_xz, _yz, _zx, _zy :: R3 t => Lens' (t a) (V2 a)
+_xz f = _xyz $ \(V3 a b c) -> f (V2 a c) <&> \(V2 a' c') -> V3 a' b c'
+{-# INLINE _xz #-}
+_yz f = _xyz $ \(V3 a b c) -> f (V2 b c) <&> \(V2 b' c') -> V3 a b' c'
+{-# INLINE _yz #-}
+_zx f = _xyz $ \(V3 a b c) -> f (V2 c a) <&> \(V2 c' a') -> V3 a' b c'
+{-# INLINE _zx #-}
+_zy f = _xyz $ \(V3 a b c) -> f (V2 c b) <&> \(V2 c' b') -> V3 a b' c'
+{-# INLINE _zy #-}
+
+_xzy, _yxz, _yzx, _zxy, _zyx :: R3 t => Lens' (t a) (V3 a)
+_xzy f = _xyz $ \(V3 a b c) -> f (V3 a c b) <&> \(V3 a' c' b') -> V3 a' b' c'
+{-# INLINE _xzy #-}
+_yxz f = _xyz $ \(V3 a b c) -> f (V3 b a c) <&> \(V3 b' a' c') -> V3 a' b' c'
+{-# INLINE _yxz #-}
+_yzx f = _xyz $ \(V3 a b c) -> f (V3 b c a) <&> \(V3 b' c' a') -> V3 a' b' c'
+{-# INLINE _yzx #-}
+_zxy f = _xyz $ \(V3 a b c) -> f (V3 c a b) <&> \(V3 c' a' b') -> V3 a' b' c'
+{-# INLINE _zxy #-}
+_zyx f = _xyz $ \(V3 a b c) -> f (V3 c b a) <&> \(V3 c' b' a') -> V3 a' b' c'
+{-# INLINE _zyx #-}

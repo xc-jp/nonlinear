@@ -13,6 +13,7 @@ module Nonlinear.V2 where
 
 import Control.Applicative
 import Data.Data (Data, Typeable)
+import Data.Functor ((<&>))
 import Data.Functor.Classes
 import GHC.Generics (Generic, Generic1)
 import Lens.Micro.Internal (Field1 (..), Field2 (..))
@@ -125,3 +126,10 @@ instance R2 V2 where
   _y = _1
   {-# INLINE _xy #-}
   _xy = id
+
+-- |
+-- >>> V2 1 2 ^. _yx
+-- V2 2 1
+_yx :: R2 t => Lens' (t a) (V2 a)
+_yx f = _xy $ \(V2 a b) -> f (V2 b a) <&> \(V2 b' a') -> V2 a' b'
+{-# INLINE _yx #-}
