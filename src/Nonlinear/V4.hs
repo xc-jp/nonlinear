@@ -13,37 +13,39 @@ module Nonlinear.V4 where
 
 import Control.Applicative
 import Data.Data (Data, Typeable)
-import Data.Distributive
 import Data.Functor.Classes
-import Data.Functor.Rep (Representable)
 import GHC.Generics (Generic, Generic1)
 import Lens.Micro.Internal (Field1 (..), Field2 (..), Field3 (..), Field4 (..))
-import Lens.Micro.TH
+import Lens.Micro.Type (Lens')
+import Nonlinear.V1 (R1 (..))
+import Nonlinear.V2 (R2 (..))
+import Nonlinear.V3 (R3 (..))
 
-data V4 a = V4 {_v4x :: !a, _v4y :: !a, _v4z :: !a, _v4w :: !a}
+data V4 a = V4 {v4x :: !a, v4y :: !a, v4z :: !a, v4w :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
-  -- TODO Maybe use `linear`'s approach of using the lens as the `Rep`?'
-  deriving anyclass (Representable)
 
-instance Distributive V4 where
-  distribute f = V4 (_v4x <$> f) (_v4y <$> f) (_v4z <$> f) (_v4w <$> f)
+instance Field1 (V4 a) (V4 a) a a where
+  {-# INLINE _1 #-}
+  _1 f (V4 x y z w) = (\x' -> V4 x' y z w) <$> f x
 
-makeLenses ''V4
+instance Field2 (V4 a) (V4 a) a a where
+  {-# INLINE _2 #-}
+  _2 f (V4 x y z w) = (\y' -> V4 x y' z w) <$> f y
 
-instance Field1 (V4 a) (V4 a) a a where _1 = v4x
+instance Field3 (V4 a) (V4 a) a a where
+  {-# INLINE _3 #-}
+  _3 f (V4 x y z w) = (\z' -> V4 x y z' w) <$> f z
 
-instance Field2 (V4 a) (V4 a) a a where _2 = v4y
-
-instance Field3 (V4 a) (V4 a) a a where _3 = v4z
-
-instance Field4 (V4 a) (V4 a) a a where _4 = v4w
+instance Field4 (V4 a) (V4 a) a a where
+  {-# INLINE _4 #-}
+  _4 f (V4 x y z w) = V4 x y z <$> f w
 
 instance Applicative V4 where
   pure a = V4 a a a a
   V4 fx fy fz fw <*> V4 x y z w = V4 (fx x) (fy y) (fz z) (fw w)
 
 instance Monad V4 where
-  V4 x y z w >>= f = V4 (_v4x $ f x) (_v4y $ f y) (_v4z $ f z) (_v4w $ f w)
+  V4 x y z w >>= f = V4 (v4x $ f x) (v4y $ f y) (v4z $ f z) (v4w $ f w)
 
 instance Semigroup x => Semigroup (V4 x) where V4 x y z w <> V4 x' y' z' w' = V4 (x <> x') (y <> y') (z <> z') (w <> w')
 
@@ -119,3 +121,22 @@ instance Show1 V4 where
   liftShowsPrec f _ d (V4 x y z w) =
     showParen (d > 10) $
       showString "V4 " . f 11 x . showChar ' ' . f 11 y . showChar ' ' . f 11 z . showChar ' ' . f 11 w
+
+class R3 t => R4 t where
+  _w :: Lens' (t a) a
+
+instance R1 V4 where
+  {-# INLINE _x #-}
+  _x = _1
+
+instance R2 V4 where
+  {-# INLINE _y #-}
+  _y = _2
+
+instance R3 V4 where
+  {-# INLINE _z #-}
+  _z = _3
+
+instance R4 V4 where
+  {-# INLINE _w #-}
+  _w = _4

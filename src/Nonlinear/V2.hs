@@ -13,33 +13,29 @@ module Nonlinear.V2 where
 
 import Control.Applicative
 import Data.Data (Data, Typeable)
-import Data.Distributive
 import Data.Functor.Classes
-import Data.Functor.Rep (Representable)
 import GHC.Generics (Generic, Generic1)
 import Lens.Micro.Internal (Field1 (..), Field2 (..))
-import Lens.Micro.TH
+import Lens.Micro.Type (Lens')
+import Nonlinear.V1 (R1 (..))
 
-data V2 a = V2 {_v2x :: !a, _v2y :: !a}
+data V2 a = V2 {v2x :: !a, v2y :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
-  -- TODO Maybe use `linear`'s approach of using the lens as the `Rep`?'
-  deriving anyclass (Representable)
 
-instance Distributive V2 where
-  distribute f = V2 (_v2x <$> f) (_v2y <$> f)
+instance Field1 (V2 a) (V2 a) a a where
+  {-# INLINE _1 #-}
+  _1 f (V2 x y) = (\x' -> V2 x' y) <$> f x
 
-makeLenses ''V2
-
-instance Field1 (V2 a) (V2 a) a a where _1 = v2x
-
-instance Field2 (V2 a) (V2 a) a a where _2 = v2y
+instance Field2 (V2 a) (V2 a) a a where
+  {-# INLINE _2 #-}
+  _2 f (V2 x y) = V2 x <$> f y
 
 instance Applicative V2 where
   pure a = V2 a a
   V2 fx fy <*> V2 x y = V2 (fx x) (fy y)
 
 instance Monad V2 where
-  V2 x y >>= f = V2 (_v2x $ f x) (_v2y $ f y)
+  V2 x y >>= f = V2 (v2x $ f x) (v2y $ f y)
 
 instance Semigroup x => Semigroup (V2 x) where V2 x y <> V2 x' y' = V2 (x <> x') (y <> y')
 
@@ -115,3 +111,14 @@ instance Show1 V2 where
   liftShowsPrec f _ d (V2 x y) =
     showParen (d > 10) $
       showString "V2 " . f 11 x . showChar ' ' . f 11 y
+
+class R1 t => R2 t where
+  _y :: Lens' (t a) a
+
+instance R1 V2 where
+  {-# INLINE _x #-}
+  _x = _1
+
+instance R2 V2 where
+  {-# INLINE _y #-}
+  _y = _1

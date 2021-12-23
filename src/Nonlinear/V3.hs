@@ -13,35 +13,34 @@ module Nonlinear.V3 where
 
 import Control.Applicative
 import Data.Data (Data, Typeable)
-import Data.Distributive
 import Data.Functor.Classes
-import Data.Functor.Rep (Representable)
 import GHC.Generics (Generic, Generic1)
 import Lens.Micro.Internal (Field1 (..), Field2 (..), Field3 (..))
-import Lens.Micro.TH
+import Lens.Micro.Type (Lens')
+import Nonlinear.V1 (R1 (..))
+import Nonlinear.V2 (R2 (..))
 
-data V3 a = V3 {_v3x :: !a, _v3y :: !a, _v3z :: !a}
+data V3 a = V3 {v3x :: !a, v3y :: !a, v3z :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
-  -- TODO Maybe use `linear`'s approach of using the lens as the `Rep`?'
-  deriving anyclass (Representable)
 
-instance Distributive V3 where
-  distribute f = V3 (_v3x <$> f) (_v3y <$> f) (_v3z <$> f)
+instance Field1 (V3 a) (V3 a) a a where
+  {-# INLINE _1 #-}
+  _1 f (V3 x y z) = (\x' -> V3 x' y z) <$> f x
 
-makeLenses ''V3
+instance Field2 (V3 a) (V3 a) a a where
+  {-# INLINE _2 #-}
+  _2 f (V3 x y z) = (\y' -> V3 x y' z) <$> f y
 
-instance Field1 (V3 a) (V3 a) a a where _1 = v3x
-
-instance Field2 (V3 a) (V3 a) a a where _2 = v3y
-
-instance Field3 (V3 a) (V3 a) a a where _3 = v3z
+instance Field3 (V3 a) (V3 a) a a where
+  {-# INLINE _3 #-}
+  _3 f (V3 x y z) = V3 x y <$> f z
 
 instance Applicative V3 where
   pure a = V3 a a a
   V3 fx fy fz <*> V3 x y z = V3 (fx x) (fy y) (fz z)
 
 instance Monad V3 where
-  V3 x y z >>= f = V3 (_v3x $ f x) (_v3y $ f y) (_v3z $ f z)
+  V3 x y z >>= f = V3 (v3x $ f x) (v3y $ f y) (v3z $ f z)
 
 instance Semigroup x => Semigroup (V3 x) where V3 x y z <> V3 x' y' z' = V3 (x <> x') (y <> y') (z <> z')
 
@@ -117,3 +116,18 @@ instance Show1 V3 where
   liftShowsPrec f _ d (V3 x y z) =
     showParen (d > 10) $
       showString "V3 " . f 11 x . showChar ' ' . f 11 y . showChar ' ' . f 11 z
+
+class R2 t => R3 t where
+  _z :: Lens' (t a) a
+
+instance R1 V3 where
+  {-# INLINE _x #-}
+  _x = _1
+
+instance R2 V3 where
+  {-# INLINE _y #-}
+  _y = _2
+
+instance R3 V3 where
+  {-# INLINE _z #-}
+  _z = _3
