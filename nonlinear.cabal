@@ -13,6 +13,7 @@ library
   exposed-modules:
     Nonlinear
     Nonlinear.Distributive
+    Nonlinear.Representable
     Nonlinear.V1
     Nonlinear.V2
     Nonlinear.V3

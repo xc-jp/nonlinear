@@ -8,6 +8,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Nonlinear.V3 where
 
@@ -16,9 +17,11 @@ import Data.Data (Data, Typeable)
 import Data.Functor ((<&>))
 import Data.Functor.Classes
 import GHC.Generics (Generic, Generic1)
+import Lens.Micro.Extras (view)
 import Lens.Micro.Internal (Field1 (..), Field2 (..), Field3 (..))
 import Lens.Micro.Type (Lens')
 import Nonlinear.Distributive (Distributive (distribute))
+import Nonlinear.Representable
 import Nonlinear.V1 (R1 (..))
 import Nonlinear.V2 (R2 (..), V2 (..))
 
@@ -28,6 +31,13 @@ data V3 a = V3 {v3x :: !a, v3y :: !a, v3z :: !a}
 instance Distributive V3 where
   distribute f = V3 (fmap v3x f) (fmap v3y f) (fmap v3z f)
   {-# INLINE distribute #-}
+
+instance Representable V3 where
+  type Rep V3 = E V3
+  tabulate f = V3 (f $ E _x) (f $ E _y) (f $ E _z)
+  {-# INLINE tabulate #-}
+  index xs (E l) = view l xs
+  {-# INLINE index #-}
 
 instance Field1 (V3 a) (V3 a) a a where
   {-# INLINE _1 #-}
