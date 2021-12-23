@@ -12,6 +12,7 @@ license:            BSD3
 library
   exposed-modules:
     Nonlinear
+    Nonlinear.Distributive
     Nonlinear.V1
     Nonlinear.V2
     Nonlinear.V3

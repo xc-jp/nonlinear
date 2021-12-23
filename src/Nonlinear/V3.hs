@@ -18,11 +18,16 @@ import Data.Functor.Classes
 import GHC.Generics (Generic, Generic1)
 import Lens.Micro.Internal (Field1 (..), Field2 (..), Field3 (..))
 import Lens.Micro.Type (Lens')
+import Nonlinear.Distributive (Distributive (distribute))
 import Nonlinear.V1 (R1 (..))
 import Nonlinear.V2 (R2 (..), V2 (..))
 
 data V3 a = V3 {v3x :: !a, v3y :: !a, v3z :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
+
+instance Distributive V3 where
+  distribute f = V3 (fmap v3x f) (fmap v3y f) (fmap v3z f)
+  {-# INLINE distribute #-}
 
 instance Field1 (V3 a) (V3 a) a a where
   {-# INLINE _1 #-}
