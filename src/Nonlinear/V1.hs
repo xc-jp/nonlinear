@@ -5,6 +5,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 
+-- | Adapted from [Linear.V1](https://hackage.haskell.org/package/linear-1.21.8/docs/Linear-V1.html)
 module Nonlinear.V1 where
 
 import Data.Data (Data, Typeable)

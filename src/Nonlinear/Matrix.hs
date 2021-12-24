@@ -1,5 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 
+-- | Adapted from [Linear.Matrix](https://hackage.haskell.org/package/linear-1.21.8/docs/Linear-Matrix.html)
 module Nonlinear.Matrix
   ( (!*!),
     (!*),

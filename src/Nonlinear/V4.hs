@@ -4,6 +4,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TypeFamilies #-}
 
+-- | Adapted from [Linear.V4](https://hackage.haskell.org/package/linear-1.21.8/docs/Linear-V4.html)
 module Nonlinear.V4 where
 
 import Control.Applicative
