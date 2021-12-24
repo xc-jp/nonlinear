@@ -10,12 +10,13 @@ extra-source-files: README.md
 license:            BSD3
 
 library
-  hidden-modules:   Nonlinear.Internal
+  other-modules:    Nonlinear.Internal
   exposed-modules:
     Nonlinear
     Nonlinear.Distributive
     Nonlinear.Matrix
     Nonlinear.Projection
+    Nonlinear.Quaternion
     Nonlinear.Representable
     Nonlinear.V1
     Nonlinear.V2

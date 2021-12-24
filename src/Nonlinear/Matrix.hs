@@ -30,11 +30,10 @@ module Nonlinear.Matrix
     inv33,
     inv44,
     identity,
-    -- Trace (..),
     translation,
     transpose,
-    -- fromQuaternion,
-    -- mkTransformation,
+    fromQuaternion,
+    mkTransformation,
     mkTransformationMat,
     _m22,
     _m23,
@@ -65,6 +64,7 @@ import Control.Monad (join)
 import Data.Foldable as Foldable
 import Nonlinear.Distributive
 import Nonlinear.Internal (Lens', lens, set, view)
+import Nonlinear.Quaternion
 import Nonlinear.Representable
 import Nonlinear.V2
 import Nonlinear.V3
@@ -188,7 +188,6 @@ type M43 a = V4 (V3 a)
 -- | A 4x4 matrix with row-major representation
 type M44 a = V4 (V4 a)
 
-{- TODO blocked on Quaternion
 -- | Build a rotation matrix from a unit 'Quaternion'.
 fromQuaternion :: Num a => Quaternion a -> M33 a
 fromQuaternion (Quaternion w (V3 x y z)) =
@@ -207,7 +206,6 @@ fromQuaternion (Quaternion w (V3 x y z)) =
     yw = y * w
     zw = z * w
 {-# INLINE fromQuaternion #-}
--}
 
 -- | Build a transformation matrix from a rotation matrix and a
 -- translation vector.
@@ -218,13 +216,11 @@ mkTransformationMat (V3 r1 r2 r3) (V3 tx ty tz) =
     snoc3 (V3 x y z) = V4 x y z
 {-# INLINE mkTransformationMat #-}
 
-{- TODO blocked on Quaternion
 -- | Build a transformation matrix from a rotation expressed as a
 --  'Quaternion' and a translation vector.
 mkTransformation :: Num a => Quaternion a -> V3 a -> M44 a
 mkTransformation = mkTransformationMat . fromQuaternion
 {-# INLINE mkTransformation #-}
--}
 
 -- | Convert from a 4x3 matrix to a 4x4 matrix, extending it with the @[ 0 0 0 1 ]@ column vector
 m43_to_m44 :: Num a => M43 a -> M44 a
