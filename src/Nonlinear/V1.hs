@@ -18,10 +18,8 @@ import Data.Functor.Classes
 import Data.Functor.Identity
 import Foreign (Storable)
 import GHC.Generics (Generic, Generic1)
-import Lens.Micro.Extras (view)
-import Lens.Micro.Internal (Field1 (..))
-import Lens.Micro.Type (Lens')
 import Nonlinear.Distributive (Distributive (..))
+import Nonlinear.Internal (Lens', view)
 import Nonlinear.Representable
 
 newtype V1 a = V1 {v1x :: a}
@@ -40,13 +38,9 @@ instance Representable V1 where
   index xs (E l) = view l xs
   {-# INLINE index #-}
 
-instance Field1 (V1 a) (V1 a) a a where
-  {-# INLINE _1 #-}
-  _1 f (V1 a) = V1 <$> f a
-
 class R1 t where
   _x :: Lens' (t a) a
 
 instance R1 V1 where
   {-# INLINE _x #-}
-  _x = _1
+  _x f (V1 a) = V1 <$> f a

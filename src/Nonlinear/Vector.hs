@@ -32,10 +32,8 @@ module Nonlinear.Vector
   )
 where
 
-import Control.Monad.Trans.State.Strict
 import Data.Foldable (toList)
-import Data.Traversable (for)
-import Lens.Micro
+import Nonlinear.Internal
 
 infixl 7 ^*, *^, ^/
 
@@ -72,14 +70,6 @@ f ^/ a = fmap (/ a) f
 -- of the vector space is not statically known, see 'basisFor'.
 basis :: (Applicative t, Traversable t, Num a) => [t a]
 basis = basisFor (pure ())
-
-{-# INLINE imap #-}
-imap :: Traversable t => (Int -> a -> b) -> (t a -> t b)
-imap f t = flip evalState 0 $
-  for t $ \a -> do
-    n <- get
-    put (n + 1)
-    pure $ f n a
 
 -- | Produce a default basis for a vector space from which the
 -- argument is drawn.

@@ -10,6 +10,7 @@ extra-source-files: README.md
 license:            BSD3
 
 library
+  hidden-modules:   Nonlinear.Internal
   exposed-modules:
     Nonlinear
     Nonlinear.Distributive
@@ -23,10 +24,5 @@ library
 
   default-language: Haskell2010
   hs-source-dirs:   src
-  build-depends:
-      base
-    , microlens
-    , transformers
-    , vector
-
+  build-depends:    base
   ghc-options:      -Wall -Wno-name-shadowing -haddock

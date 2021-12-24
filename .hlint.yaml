@@ -3,3 +3,6 @@
 
 - ignore:
     name: Use section
+
+- ignore:
+    name: Use tuple-section

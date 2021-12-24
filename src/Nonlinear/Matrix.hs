@@ -5,19 +5,6 @@
 {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE TypeFamilies #-}
 
----------------------------------------------------------------------------
-
----------------------------------------------------------------------------
-
--- |
--- Copyright   :  (C) 2012-2015 Edward Kmett
--- License     :  BSD-style (see the file LICENSE)
---
--- Maintainer  :  Edward Kmett <ekmett@gmail.com>
--- Stability   :  experimental
--- Portability :  non-portable
---
--- Simple matrix operation for low-dimensional primitives.
 module Nonlinear.Matrix
   ( (!*!),
     (!*),
@@ -77,10 +64,8 @@ where
 
 import Control.Applicative
 import Data.Foldable as Foldable
-import Lens.Micro (lens, set, (&))
-import Lens.Micro.Extras (view)
-import Lens.Micro.Type (Lens')
 import Nonlinear.Distributive
+import Nonlinear.Internal (Lens', lens, set, view)
 import Nonlinear.Representable
 import Nonlinear.V2
 import Nonlinear.V3
@@ -96,7 +81,7 @@ column ::
 column l =
   lens
     (fmap $ view l)
-    (\fa fb -> tabulate (\ix -> index fa ix & set l (index fb ix)))
+    (\fa fb -> tabulate (\ix -> set l (index fb ix) (index fa ix)))
 {-# INLINE column #-}
 
 infixl 7 !*!

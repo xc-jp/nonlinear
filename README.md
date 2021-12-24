@@ -9,8 +9,8 @@ More specifically, A clone of `linear`, but less general, and minimal dependenci
 Our primary focus is on providing a set of low-dimensional vector types (i.e. `V1` through `V4`), and having minimal dependencies.
 We specifically don't aim to make functions general enough to be used for e.g. sparse vectors.
 
-- Lenses still work wonderfully, but we use `microlens` instead. (TODO: do we drop microlens as well?)
+- We don't use the `lens` library itself, but the provided lenses should be fully compatible with it and most other lens libraries
 
-- For `Vn`, `Additive` is equal to `Applicative`, and so has been removed.
+- Since for `Vn`, `Additive` is equal to `Applicative`, it has been removed.
 
-- `column` has been specialized to a `Lens'`
+- `column` now only works on simple lenses (i.e. `Lens' s a`). This makes the implementation a lot simpler, and should cover normal use cases.

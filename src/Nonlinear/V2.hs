@@ -17,10 +17,8 @@ import Data.Data (Data, Typeable)
 import Data.Functor ((<&>))
 import Data.Functor.Classes
 import GHC.Generics (Generic, Generic1)
-import Lens.Micro.Extras (view)
-import Lens.Micro.Internal (Field1 (..), Field2 (..))
-import Lens.Micro.Type (Lens')
 import Nonlinear.Distributive (Distributive (distribute))
+import Nonlinear.Internal (Lens', view)
 import Nonlinear.Representable
 import Nonlinear.V1 (R1 (..))
 
@@ -37,14 +35,6 @@ instance Representable V2 where
   {-# INLINE tabulate #-}
   index xs (E l) = view l xs
   {-# INLINE index #-}
-
-instance Field1 (V2 a) (V2 a) a a where
-  {-# INLINE _1 #-}
-  _1 f (V2 x y) = (\x' -> V2 x' y) <$> f x
-
-instance Field2 (V2 a) (V2 a) a a where
-  {-# INLINE _2 #-}
-  _2 f (V2 x y) = V2 x <$> f y
 
 instance Applicative V2 where
   pure a = V2 a a
@@ -134,11 +124,11 @@ class R1 t => R2 t where
 
 instance R1 V2 where
   {-# INLINE _x #-}
-  _x = _1
+  _x f (V2 x y) = (\x' -> V2 x' y) <$> f x
 
 instance R2 V2 where
   {-# INLINE _y #-}
-  _y = _1
+  _y f (V2 x y) = V2 x <$> f y
   {-# INLINE _xy #-}
   _xy = id
 

@@ -17,10 +17,8 @@ import Data.Data (Data, Typeable)
 import Data.Functor ((<&>))
 import Data.Functor.Classes
 import GHC.Generics (Generic, Generic1)
-import Lens.Micro.Extras (view)
-import Lens.Micro.Internal (Field1 (..), Field2 (..), Field3 (..), Field4 (..))
-import Lens.Micro.Type (Lens')
 import Nonlinear.Distributive (Distributive (distribute))
+import Nonlinear.Internal (Lens', view)
 import Nonlinear.Representable
 import Nonlinear.V1 (R1 (..))
 import Nonlinear.V2 (R2 (..), V2 (..))
@@ -29,6 +27,7 @@ import Nonlinear.Vector ((*^))
 
 -- TODO field accessors are nice, but the derived show instance is not.
 -- Either we drop the accessors, or we manually write the Show instance.
+-- Note that Show1 is already hand-rolled
 data V4 a = V4 {v4x :: !a, v4y :: !a, v4z :: !a, v4w :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
 
@@ -42,22 +41,6 @@ instance Representable V4 where
   {-# INLINE tabulate #-}
   index xs (E l) = view l xs
   {-# INLINE index #-}
-
-instance Field1 (V4 a) (V4 a) a a where
-  {-# INLINE _1 #-}
-  _1 f (V4 x y z w) = (\x' -> V4 x' y z w) <$> f x
-
-instance Field2 (V4 a) (V4 a) a a where
-  {-# INLINE _2 #-}
-  _2 f (V4 x y z w) = (\y' -> V4 x y' z w) <$> f y
-
-instance Field3 (V4 a) (V4 a) a a where
-  {-# INLINE _3 #-}
-  _3 f (V4 x y z w) = (\z' -> V4 x y z' w) <$> f z
-
-instance Field4 (V4 a) (V4 a) a a where
-  {-# INLINE _4 #-}
-  _4 f (V4 x y z w) = V4 x y z <$> f w
 
 instance Applicative V4 where
   pure a = V4 a a a a
@@ -155,7 +138,7 @@ point (V3 a b c) = V4 a b c 1
 
 -- | Convert 4-dimensional projective coordinates to a 3-dimensional
 -- point. This operation may be denoted, @euclidean [x:y:z:w] = (x\/w,
--- y\/w, z\/w)@ where the projective, homogenous, coordinate
+-- y\/w, z\/w)@ where the projective, homogeneous, coordinate
 -- @[x:y:z:w]@ is one of many associated with a single point @(x\/w,
 -- y\/w, z\/w)@.
 normalizePoint :: Fractional a => V4 a -> V3 a
@@ -168,23 +151,23 @@ class R3 t => R4 t where
 
 instance R1 V4 where
   {-# INLINE _x #-}
-  _x = _1
+  _x f (V4 x y z w) = (\x' -> V4 x' y z w) <$> f x
 
 instance R2 V4 where
   {-# INLINE _y #-}
-  _y = _2
+  _y f (V4 x y z w) = (\y' -> V4 x y' z w) <$> f y
   {-# INLINE _xy #-}
   _xy f (V4 x y z w) = (\(V2 x' y') -> V4 x' y' z w) <$> f (V2 x y)
 
 instance R3 V4 where
   {-# INLINE _z #-}
-  _z = _3
+  _z f (V4 x y z w) = (\z' -> V4 x y z' w) <$> f z
   {-# INLINE _xyz #-}
   _xyz f (V4 x y z w) = (\(V3 x' y' z') -> V4 x' y' z' w) <$> f (V3 x y z)
 
 instance R4 V4 where
   {-# INLINE _w #-}
-  _w = _4
+  _w f (V4 x y z w) = V4 x y z <$> f w
   {-# INLINE _xyzw #-}
   _xyzw = id
 
