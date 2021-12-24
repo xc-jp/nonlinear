@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
 -- | Adapted from [Linear.V4](https://hackage.haskell.org/package/linear-1.21.8/docs/Linear-V4.html)
@@ -11,7 +12,10 @@ import Control.Applicative
 import Data.Data (Data, Typeable)
 import Data.Functor ((<&>))
 import Data.Functor.Classes
+import Foreign (Storable (..))
+import Foreign.Ptr (castPtr)
 import GHC.Generics (Generic, Generic1)
+import GHC.Ix (Ix (..))
 import Nonlinear.Distributive (Distributive (distribute))
 import Nonlinear.Internal (Lens', view)
 import Nonlinear.Representable
@@ -24,7 +28,7 @@ import Nonlinear.Vector ((*^))
 -- Either we drop the accessors, or we manually write the Show instance.
 -- Note that Show1 is already hand-rolled
 data V4 a = V4 {v4x :: !a, v4y :: !a, v4z :: !a, v4w :: !a}
-  deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
+  deriving stock (Eq, Show, Read, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
 
 instance Distributive V4 where
   distribute f = V4 (fmap v4x f) (fmap v4y f) (fmap v4z f) (fmap v4w f)
@@ -38,10 +42,13 @@ instance Representable V4 where
   {-# INLINE index #-}
 
 instance Applicative V4 where
+  {-# INLINE pure #-}
   pure a = V4 a a a a
+  {-# INLINE (<*>) #-}
   V4 fx fy fz fw <*> V4 x y z w = V4 (fx x) (fy y) (fz z) (fw w)
 
 instance Monad V4 where
+  {-# INLINE (>>=) #-}
   V4 x y z w >>= f = V4 (v4x $ f x) (v4y $ f y) (v4z $ f z) (v4w $ f w)
 
 instance Semigroup x => Semigroup (V4 x) where V4 x y z w <> V4 x' y' z' w' = V4 (x <> x') (y <> y') (z <> z') (w <> w')
@@ -110,14 +117,26 @@ instance Floating a => Floating (V4 a) where
   acosh = fmap acosh
   {-# INLINE acosh #-}
 
-instance Eq1 V4 where liftEq f (V4 x y z w) (V4 x' y' z' w') = f x x' && f y y' && f z z' && f w w'
+instance Eq1 V4 where
+  liftEq k (V4 a b c d) (V4 e f g h) = k a e && k b f && k c g && k d h
 
-instance Ord1 V4 where liftCompare f (V4 x y z w) (V4 x' y' z' w') = f x x' <> f y y' <> f z z' <> f w w'
+instance Ord1 V4 where
+  liftCompare k (V4 a b c d) (V4 e f g h) = k a e <> k b f <> k c g <> k d h
+
+instance Read1 V4 where
+  liftReadsPrec k _ z = readParen (z > 10) $ \r ->
+    [ (V4 a b c d, r5)
+      | ("V4", r1) <- lex r,
+        (a, r2) <- k 11 r1,
+        (b, r3) <- k 11 r2,
+        (c, r4) <- k 11 r3,
+        (d, r5) <- k 11 r4
+    ]
 
 instance Show1 V4 where
-  liftShowsPrec f _ d (V4 x y z w) =
-    showParen (d > 10) $
-      showString "V4 " . f 11 x . showChar ' ' . f 11 y . showChar ' ' . f 11 z . showChar ' ' . f 11 w
+  liftShowsPrec f _ z (V4 a b c d) =
+    showParen (z > 10) $
+      showString "V4 " . f 11 a . showChar ' ' . f 11 b . showChar ' ' . f 11 c . showChar ' ' . f 11 d
 
 -- | Convert a 3-dimensional affine vector into a 4-dimensional homogeneous vector,
 -- i.e. sets the @w@ coordinate to 0.
@@ -265,3 +284,47 @@ _wzxy f = _xyzw $ \(V4 a b c d) -> f (V4 d c a b) <&> \(V4 d' c' a' b') -> V4 a'
 {-# INLINE _wzxy #-}
 _wzyx f = _xyzw $ \(V4 a b c d) -> f (V4 d c b a) <&> \(V4 d' c' b' a') -> V4 a' b' c' d'
 {-# INLINE _wzyx #-}
+
+instance Storable a => Storable (V4 a) where
+  sizeOf _ = 4 * sizeOf (undefined :: a)
+  {-# INLINE sizeOf #-}
+  alignment _ = alignment (undefined :: a)
+  {-# INLINE alignment #-}
+  poke ptr (V4 x y z w) = do
+    poke ptr' x
+    pokeElemOff ptr' 1 y
+    pokeElemOff ptr' 2 z
+    pokeElemOff ptr' 3 w
+    where
+      ptr' = castPtr ptr
+  {-# INLINE poke #-}
+  peek ptr =
+    V4 <$> peek ptr' <*> peekElemOff ptr' 1
+      <*> peekElemOff ptr' 2
+      <*> peekElemOff ptr' 3
+    where
+      ptr' = castPtr ptr
+  {-# INLINE peek #-}
+
+instance Ix a => Ix (V4 a) where
+  {-# SPECIALIZE instance Ix (V4 Int) #-}
+
+  range (V4 l1 l2 l3 l4, V4 u1 u2 u3 u4) =
+    [ V4 i1 i2 i3 i4 | i1 <- range (l1, u1), i2 <- range (l2, u2), i3 <- range (l3, u3), i4 <- range (l4, u4)
+    ]
+  {-# INLINE range #-}
+
+  unsafeIndex (V4 l1 l2 l3 l4, V4 u1 u2 u3 u4) (V4 i1 i2 i3 i4) =
+    unsafeIndex (l4, u4) i4 + unsafeRangeSize (l4, u4)
+      * ( unsafeIndex (l3, u3) i3 + unsafeRangeSize (l3, u3)
+            * ( unsafeIndex (l2, u2) i2 + unsafeRangeSize (l2, u2)
+                  * unsafeIndex (l1, u1) i1
+              )
+        )
+  {-# INLINE unsafeIndex #-}
+
+  inRange (V4 l1 l2 l3 l4, V4 u1 u2 u3 u4) (V4 i1 i2 i3 i4) =
+    inRange (l1, u1) i1 && inRange (l2, u2) i2
+      && inRange (l3, u3) i3
+      && inRange (l4, u4) i4
+  {-# INLINE inRange #-}
