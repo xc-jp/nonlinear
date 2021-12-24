@@ -16,6 +16,7 @@ import Nonlinear.Distributive (Distributive (distribute))
 import Nonlinear.Internal (Lens', view)
 import Nonlinear.Representable
 import Nonlinear.V1 (R1 (..))
+import Nonlinear.Vector (norm)
 
 data V2 a = V2 {v2x :: !a, v2y :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
@@ -112,6 +113,32 @@ instance Show1 V2 where
   liftShowsPrec f _ d (V2 x y) =
     showParen (d > 10) $
       showString "V2 " . f 11 x . showChar ' ' . f 11 y
+
+-- | the counter-clockwise perpendicular vector
+--
+-- >>> perp $ V2 10 20
+-- V2 (-20) 10
+perp :: Num a => V2 a -> V2 a
+perp (V2 a b) = V2 (negate b) a
+{-# INLINE perp #-}
+
+angle :: Floating a => a -> V2 a
+angle a = V2 (cos a) (sin a)
+
+unangle :: (Floating a, Ord a) => V2 a -> a
+unangle a@(V2 ax ay) =
+  let alpha = asin $ ay / norm a
+   in if ax < 0
+        then pi - alpha
+        else alpha
+
+-- | The Z-component of the cross product of two vectors in the XY-plane.
+--
+-- >>> crossZ (V2 1 0) (V2 0 1)
+-- 1
+crossZ :: Num a => V2 a -> V2 a -> a
+crossZ (V2 x1 y1) (V2 x2 y2) = x1 * y2 - y1 * x2
+{-# INLINE crossZ #-}
 
 class R1 t => R2 t where
   _y :: Lens' (t a) a
