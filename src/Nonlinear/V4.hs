@@ -27,6 +27,8 @@ import Nonlinear.V2 (R2 (..), V2 (..))
 import Nonlinear.V3 (R3 (..), V3 (..))
 import Nonlinear.Vector ((*^))
 
+-- TODO field accessors are nice, but the derived show instance is not.
+-- Either we drop the accessors, or we manually write the Show instance.
 data V4 a = V4 {v4x :: !a, v4y :: !a, v4z :: !a, v4w :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
 
