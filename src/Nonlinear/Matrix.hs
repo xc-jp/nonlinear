@@ -1,9 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE Trustworthy #-}
-{-# LANGUAGE TypeFamilies #-}
 
 module Nonlinear.Matrix
   ( (!*!),
@@ -74,7 +69,6 @@ import Nonlinear.Vector (scaled, (*^))
 
 -- | This is more restrictive than linear's @LensLike (Context a b) s t a b -> Lens (f s) (f t) (f a) (f b)@, but in return we get a much simpler implementation which should suffice in 99% of cases.
 column ::
-  forall f a b.
   Representable f =>
   Lens' a b ->
   Lens' (f a) (f b)

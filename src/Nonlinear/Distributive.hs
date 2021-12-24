@@ -1,4 +1,3 @@
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- | Adapted from [Data.Distributive](https://hackage.haskell.org/package/distributive-0.6.2.1/docs/Data-Distributive.html)

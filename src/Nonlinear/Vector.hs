@@ -1,24 +1,4 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE Trustworthy #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
-
------------------------------------------------------------------------------
-
------------------------------------------------------------------------------
-
--- |
--- Copyright   :  (C) 2012-2015 Edward Kmett
--- License     :  BSD-style (see the file LICENSE)
--- Maintainer  :  Edward Kmett <ekmett@gmail.com>
--- Stability   :  provisional
--- Portability :  portable
---
--- Operations on free vector spaces.
+-- | Adapted from [Linear.Vector](https://hackage.haskell.org/package/linear-1.21.8/docs/Linear-Vector.html)
 module Nonlinear.Vector
   ( negated,
     (^*),
@@ -33,7 +13,7 @@ module Nonlinear.Vector
 where
 
 import Data.Foldable (toList)
-import Nonlinear.Internal
+import Nonlinear.Internal (ASetter', imap, set)
 
 infixl 7 ^*, *^, ^/
 
