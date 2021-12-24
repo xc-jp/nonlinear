@@ -11,7 +11,7 @@ We specifically don't aim to make functions general enough to be used for e.g. s
 
 - We don't use the `lens` library itself, but the provided lenses should be fully compatible with it and most other lens libraries
 
-- Since for `Vn`, `Additive` is equal to `Applicative`, it has been removed.
+- We drop `Additive` and `Metric`, since for `V<n>` they can be fully captured by `Applicative` and `Foldable`
 
 - Similarly, `Trace` has been dropped in favor of the `diagonal` and `trace` methods in `Nonlinear.Matrix` that use `Foldable` and `Monad`
 

@@ -17,6 +17,7 @@ import Nonlinear.Internal (Lens', view)
 import Nonlinear.Representable
 import Nonlinear.V1 (R1 (..))
 import Nonlinear.V2 (R2 (..), V2 (..))
+import Nonlinear.Vector (dot)
 
 data V3 a = V3 {v3x :: !a, v3y :: !a, v3z :: !a}
   deriving stock (Eq, Show, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
@@ -113,6 +114,16 @@ instance Show1 V3 where
   liftShowsPrec f _ d (V3 x y z) =
     showParen (d > 10) $
       showString "V3 " . f 11 x . showChar ' ' . f 11 y . showChar ' ' . f 11 z
+
+-- | cross product
+cross :: Num a => V3 a -> V3 a -> V3 a
+cross (V3 a b c) (V3 d e f) = V3 (b * f - c * e) (c * d - a * f) (a * e - b * d)
+{-# INLINEABLE cross #-}
+
+-- | scalar triple product
+triple :: Num a => V3 a -> V3 a -> V3 a -> a
+triple a b c = dot a (cross b c)
+{-# INLINE triple #-}
 
 class R2 t => R3 t where
   _z :: Lens' (t a) a

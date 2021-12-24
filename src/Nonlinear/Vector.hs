@@ -9,10 +9,19 @@ module Nonlinear.Vector
     scaled,
     outer,
     unit,
+    dot,
+    quadrance,
+    qd,
+    distance,
+    norm,
+    signorm,
+    normalize,
+    project,
   )
 where
 
-import Data.Foldable (toList)
+import Control.Applicative (liftA2)
+import Data.Foldable (Foldable (foldl'), toList)
 import Nonlinear.Internal (ASetter', imap, set)
 
 infixl 7 ^*, *^, ^/
@@ -71,7 +80,55 @@ scaled t = imap (\i _ -> imap (\j a -> if i == j then a else 0) t) t
 -- V2 1 0
 unit :: (Applicative t, Num a) => ASetter' (t a) a -> t a
 unit l = set l 1 (pure 0)
+{-# INLINE unit #-}
 
 -- | Outer (tensor) product of two vectors
 outer :: (Functor f, Functor g, Num a) => f a -> g a -> f (g a)
 outer a b = fmap (\x -> fmap (* x) b) a
+{-# INLINE outer #-}
+
+-- | Compute the inner product of two vectors or (equivalently)
+-- convert a vector @f a@ into a covector @f a -> a@.
+--
+-- >>> V2 1 2 `dot` V2 3 4
+-- 11
+dot :: (Applicative f, Foldable f, Num a) => f a -> f a -> a
+dot a b = foldl' (+) 0 (liftA2 (+) a b)
+{-# INLINE dot #-}
+
+-- | Compute the squared norm. The name quadrance arises from
+-- Norman J. Wildberger's rational trigonometry.
+quadrance :: (Foldable f, Num a) => f a -> a
+quadrance = foldl' (\b a -> b + a * a) 0
+{-# INLINE quadrance #-}
+
+-- | Compute the quadrance of the difference
+qd :: (Applicative f, Foldable f, Num a) => f a -> f a -> a
+qd a b = foldl' (+) 0 $ liftA2 (-) a b
+{-# INLINE qd #-}
+
+-- | Compute the distance between two vectors in a metric space
+distance :: (Applicative f, Foldable f, Floating a) => f a -> f a -> a
+distance f g = norm $ liftA2 (-) f g
+{-# INLINE distance #-}
+
+-- | Compute the norm of a vector in a metric space
+norm :: (Foldable f, Floating a) => f a -> a
+norm v = sqrt (quadrance v)
+{-# INLINE norm #-}
+
+-- | Convert a non-zero vector to unit vector.
+signorm :: (Functor f, Foldable f, Floating a) => f a -> f a
+signorm v = fmap (/ norm v) v
+{-# INLINE signorm #-}
+
+-- | Normalize a 'Metric' functor to have unit 'norm'. This function
+-- does not change the functor if its 'norm' is 0 or 1.
+normalize :: (Functor f, Foldable f, Floating a) => f a -> f a
+normalize = signorm
+{-# INLINE normalize #-}
+
+-- | @project u v@ computes the projection of @v@ onto @u@.
+project :: (Applicative v, Functor v, Foldable v, Fractional a) => v a -> v a -> v a
+project u v = ((v `dot` u) / quadrance u) *^ u
+{-# INLINE project #-}
