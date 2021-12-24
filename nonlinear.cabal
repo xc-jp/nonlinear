@@ -15,6 +15,7 @@ library
     Nonlinear
     Nonlinear.Distributive
     Nonlinear.Matrix
+    Nonlinear.Projection
     Nonlinear.Representable
     Nonlinear.V1
     Nonlinear.V2
