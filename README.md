@@ -19,4 +19,6 @@ We specifically don't aim to make functions general enough to be used for e.g. s
 
 - Similarly, `Trace` has been dropped in favor of the `diagonal` and `trace` methods in `Nonlinear.Matrix` that use `Foldable` and `Monad`
 
-- `Linear.Algebra` has been dropped because I don't know what it does
+- `Linear.Epsilon` has been dropped since I consider robust close-to-zero checking out of scope for this library. `normalize = signorm`.
+
+- `Linear.Algebra` and `Linear.Covector` have been dropped because I don't see the point atm
