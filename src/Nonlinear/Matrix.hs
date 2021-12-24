@@ -9,6 +9,8 @@ module Nonlinear.Matrix
     (*!!),
     (!!/),
     column,
+    diagonal,
+    trace,
     -- adjoint,
     M22,
     M23,
@@ -59,6 +61,7 @@ module Nonlinear.Matrix
 where
 
 import Control.Applicative
+import Control.Monad (join)
 import Data.Foldable as Foldable
 import Nonlinear.Distributive
 import Nonlinear.Internal (Lens', lens, set, view)
@@ -78,6 +81,12 @@ column l =
     (fmap $ view l)
     (\fa fb -> tabulate (\ix -> set l (index fb ix) (index fa ix)))
 {-# INLINE column #-}
+
+diagonal :: Monad m => m (m a) -> m a
+diagonal = join
+
+trace :: (Foldable m, Num a, Monad m) => m (m a) -> a
+trace = sum . diagonal
 
 infixl 7 !*!
 

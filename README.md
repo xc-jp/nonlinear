@@ -13,4 +13,6 @@ We specifically don't aim to make functions general enough to be used for e.g. s
 
 - Since for `Vn`, `Additive` is equal to `Applicative`, it has been removed.
 
+- Similarly, `Trace` has been dropped in favor of the `diagonal` and `trace` methods in `Nonlinear.Matrix` that use `Foldable` and `Monad`
+
 - `column` now only works on simple lenses (i.e. `Lens' s a`). This makes the implementation a lot simpler, and should cover normal use cases.
