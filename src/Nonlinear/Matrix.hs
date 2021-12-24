@@ -65,7 +65,6 @@ import Data.Foldable as Foldable
 import Nonlinear.Distributive
 import Nonlinear.Internal (Lens', lens, set, view)
 import Nonlinear.Quaternion
-import Nonlinear.Representable
 import Nonlinear.V2
 import Nonlinear.V3
 import Nonlinear.V4
@@ -73,13 +72,10 @@ import Nonlinear.Vector (scaled, (*^))
 
 -- | This is more restrictive than linear's @LensLike (Context a b) s t a b -> Lens (f s) (f t) (f a) (f b)@, but in return we get a much simpler implementation which should suffice in 99% of cases.
 column ::
-  Representable f =>
+  Applicative f =>
   Lens' a b ->
   Lens' (f a) (f b)
-column l =
-  lens
-    (fmap $ view l)
-    (\fa fb -> tabulate (\ix -> set l (index fb ix) (index fa ix)))
+column l = lens (fmap $ view l) (liftA2 (flip $ set l))
 {-# INLINE column #-}
 
 diagonal :: Monad m => m (m a) -> m a
@@ -252,52 +248,52 @@ identity = scaled (pure 1)
 
 -- | Extract the translation vector (first three entries of the last
 --  column) from a 3x4 or 4x4 matrix.
-translation :: (Representable t, R3 t, R4 v) => Lens' (t (v a)) (V3 a)
+translation :: (Applicative t, R3 t, R4 v) => Lens' (t (v a)) (V3 a)
 translation = column _w . _xyz
 
 -- | Extract a 2x2 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m22 :: (Representable t, R2 t, R2 v) => Lens' (t (v a)) (M22 a)
+_m22 :: (Applicative t, R2 t, R2 v) => Lens' (t (v a)) (M22 a)
 _m22 = column _xy . _xy
 
 -- | Extract a 2x3 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m23 :: (Representable t, R2 t, R3 v) => Lens' (t (v a)) (M23 a)
+_m23 :: (Applicative t, R2 t, R3 v) => Lens' (t (v a)) (M23 a)
 _m23 = column _xyz . _xy
 
 -- | Extract a 2x4 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m24 :: (Representable t, R2 t, R4 v) => Lens' (t (v a)) (M24 a)
+_m24 :: (Applicative t, R2 t, R4 v) => Lens' (t (v a)) (M24 a)
 _m24 = column _xyzw . _xy
 
 -- | Extract a 3x2 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m32 :: (Representable t, R3 t, R2 v) => Lens' (t (v a)) (M32 a)
+_m32 :: (Applicative t, R3 t, R2 v) => Lens' (t (v a)) (M32 a)
 _m32 = column _xy . _xyz
 
 -- | Extract a 3x3 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m33 :: (Representable t, R3 t, R3 v) => Lens' (t (v a)) (M33 a)
+_m33 :: (Applicative t, R3 t, R3 v) => Lens' (t (v a)) (M33 a)
 _m33 = column _xyz . _xyz
 
 -- | Extract a 3x4 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m34 :: (Representable t, R3 t, R4 v) => Lens' (t (v a)) (M34 a)
+_m34 :: (Applicative t, R3 t, R4 v) => Lens' (t (v a)) (M34 a)
 _m34 = column _xyzw . _xyz
 
 -- | Extract a 4x2 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m42 :: (Representable t, R4 t, R2 v) => Lens' (t (v a)) (M42 a)
+_m42 :: (Applicative t, R4 t, R2 v) => Lens' (t (v a)) (M42 a)
 _m42 = column _xy . _xyzw
 
 -- | Extract a 4x3 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m43 :: (Representable t, R4 t, R3 v) => Lens' (t (v a)) (M43 a)
+_m43 :: (Applicative t, R4 t, R3 v) => Lens' (t (v a)) (M43 a)
 _m43 = column _xyz . _xyzw
 
 -- | Extract a 4x4 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m44 :: (Representable t, R4 t, R4 v) => Lens' (t (v a)) (M44 a)
+_m44 :: (Applicative t, R4 t, R4 v) => Lens' (t (v a)) (M44 a)
 _m44 = column _xyzw . _xyzw
 
 -- | 2x2 matrix determinant.
