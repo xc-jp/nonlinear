@@ -1,0 +1,10 @@
+cradle:
+  multi:
+    # - path: "ignore/"
+    #   config: {cradle: {none: }}
+
+    - path: "src"
+      config: {cradle: {cabal: {component: "lib:nonlinear"}}}
+
+    - path: "test"
+      config: {cradle: {cabal: {component: "nonlinear:test"}}}

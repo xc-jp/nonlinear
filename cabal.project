@@ -1,1 +1,4 @@
 packages: .
+
+package nonlinear
+  tests: True
