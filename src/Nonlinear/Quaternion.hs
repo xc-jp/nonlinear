@@ -8,10 +8,6 @@ module Nonlinear.Quaternion
   ( Quaternion (..),
     Complicated (..),
     Hamiltonian (..),
-    ee,
-    ei,
-    ej,
-    ek,
     slerp,
     asinq,
     acosq,
@@ -38,9 +34,7 @@ import Foreign.Ptr (castPtr, plusPtr)
 import Foreign.Storable (Storable (..))
 import GHC.Arr (Ix (..))
 import GHC.Generics (Generic, Generic1)
-import Nonlinear.Distributive
 import Nonlinear.Internal
-import Nonlinear.Representable
 import Nonlinear.V1
 import Nonlinear.V2
 import Nonlinear.V3
@@ -85,13 +79,6 @@ instance Ix a => Ix (Quaternion a) where
   inRange (Quaternion l1 l2, Quaternion u1 u2) (Quaternion i1 i2) =
     inRange (l1, u1) i1 && inRange (l2, u2) i2
   {-# INLINE inRange #-}
-
-instance Representable Quaternion where
-  type Rep Quaternion = E Quaternion
-  tabulate f = Quaternion (f ee) (V3 (f ei) (f ej) (f ek))
-  {-# INLINE tabulate #-}
-  index xs (E l) = view l xs
-  {-# INLINE index #-}
 
 instance Storable a => Storable (Quaternion a) where
   sizeOf _ = 4 * sizeOf (undefined :: a)
@@ -176,10 +163,6 @@ instance RealFloat a => Fractional (Quaternion a) where
 class Complicated t where
   _e, _i :: Lens' (t a) a
 
-ee, ei :: Complicated t => E t
-ee = E _e
-ei = E _i
-
 instance Complicated Complex where
   _e f (a :+ b) = (:+ b) <$> f a
   {-# INLINE _e #-}
@@ -197,10 +180,6 @@ class Complicated t => Hamiltonian t where
   _j, _k :: Lens' (t a) a
   _ijk :: Lens' (t a) (V3 a)
 
-ej, ek :: Hamiltonian t => E t
-ej = E _j
-ek = E _k
-
 instance Hamiltonian Quaternion where
   _j f (Quaternion a v) = Quaternion a <$> _y f v
   {-# INLINE _j #-}
@@ -208,15 +187,6 @@ instance Hamiltonian Quaternion where
   {-# INLINE _k #-}
   _ijk f (Quaternion a v) = Quaternion a <$> f v
   {-# INLINE _ijk #-}
-
-instance Distributive Quaternion where
-  distribute f =
-    Quaternion (fmap (\(Quaternion x _) -> x) f) $
-      V3
-        (fmap (\(Quaternion _ (V3 y _ _)) -> y) f)
-        (fmap (\(Quaternion _ (V3 _ z _)) -> z) f)
-        (fmap (\(Quaternion _ (V3 _ _ w)) -> w) f)
-  {-# INLINE distribute #-}
 
 reimagine :: RealFloat a => a -> a -> Quaternion a -> Quaternion a
 reimagine r s (Quaternion _ v)

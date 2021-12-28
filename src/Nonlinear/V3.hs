@@ -16,26 +16,13 @@ import Foreign (Storable (..))
 import Foreign.Ptr (castPtr)
 import GHC.Generics (Generic, Generic1)
 import GHC.Ix (Ix (..))
-import Nonlinear.Distributive (Distributive (distribute))
-import Nonlinear.Internal (Lens', view)
-import Nonlinear.Representable
+import Nonlinear.Internal (Lens')
 import Nonlinear.V1 (R1 (..))
 import Nonlinear.V2 (R2 (..), V2 (..))
 import Nonlinear.Vector (dot)
 
 data V3 a = V3 {v3x :: !a, v3y :: !a, v3z :: !a}
   deriving stock (Eq, Show, Read, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
-
-instance Distributive V3 where
-  distribute f = V3 (fmap v3x f) (fmap v3y f) (fmap v3z f)
-  {-# INLINE distribute #-}
-
-instance Representable V3 where
-  type Rep V3 = E V3
-  tabulate f = V3 (f $ E _x) (f $ E _y) (f $ E _z)
-  {-# INLINE tabulate #-}
-  index xs (E l) = view l xs
-  {-# INLINE index #-}
 
 instance Applicative V3 where
   {-# INLINE pure #-}

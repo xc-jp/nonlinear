@@ -13,11 +13,9 @@ library
   other-modules:    Nonlinear.Internal
   exposed-modules:
     Nonlinear
-    Nonlinear.Distributive
     Nonlinear.Matrix
     Nonlinear.Projection
     Nonlinear.Quaternion
-    Nonlinear.Representable
     Nonlinear.V1
     Nonlinear.V2
     Nonlinear.V3

@@ -62,7 +62,6 @@ where
 import Control.Applicative
 import Control.Monad (join)
 import Data.Foldable as Foldable
-import Nonlinear.Distributive
 import Nonlinear.Internal (Lens', lens, set, view)
 import Nonlinear.Quaternion
 import Nonlinear.V2
@@ -386,8 +385,8 @@ inv33
 --
 -- > transpose (V3 (V2 1 2) (V2 3 4) (V2 5 6))
 -- V2 (V3 1 3 5) (V3 2 4 6)
-transpose :: (Distributive g, Functor f) => f (g a) -> g (f a)
-transpose = distribute
+transpose :: (Traversable f, Applicative g) => f (g a) -> g (f a)
+transpose = sequenceA
 {-# INLINE transpose #-}
 
 -- | 4x4 matrix inverse.
