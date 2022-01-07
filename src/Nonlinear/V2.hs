@@ -3,7 +3,6 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
 
 -- | Adapted from [Linear.V2](https://hackage.haskell.org/package/linear-1.21.8/docs/Linear-V2.html)
 module Nonlinear.V2 where
@@ -16,17 +15,16 @@ import Foreign (Storable (..))
 import Foreign.Ptr (castPtr)
 import GHC.Generics (Generic, Generic1)
 import GHC.Ix (Ix (..))
-import Nonlinear.Internal (Lens', view)
+import Nonlinear.Internal (Lens')
 import Nonlinear.V1 (R1 (..))
-import Nonlinear.Vector
+import Nonlinear.Vector (StaticVector (..), norm)
 
 data V2 a = V2 {v2x :: !a, v2y :: !a}
   deriving stock (Eq, Show, Read, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
 
 instance StaticVector V2 where
-  type Index V2 = E V2
-  index v (E l) = view l v
-  tabulate f = V2 (f $ E _x) (f $ E _y)
+  construct f = V2 (f _x) (f _y)
+  size _ = 2
 
 instance Applicative V2 where
   {-# INLINE pure #-}

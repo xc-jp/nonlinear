@@ -1,11 +1,9 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
 
 -- | Adapted from [Linear.Vector](https://hackage.haskell.org/package/linear-1.21.8/docs/Linear-Vector.html)
 module Nonlinear.Vector
   ( StaticVector (..),
-    E (..),
     negated,
     (^*),
     (*^),
@@ -29,7 +27,6 @@ where
 import Control.Applicative (liftA2)
 import Data.Data (Proxy)
 import Data.Foldable (Foldable (foldl'), toList)
-import Data.Kind (Type)
 import Nonlinear.Internal (ASetter', Lens', imap, set)
 
 -- |
@@ -46,14 +43,11 @@ import Nonlinear.Internal (ASetter', Lens', imap, set)
 -- TODO Note about join not _necessarily_ being diagonal
 -- If you disagree call us
 class (Traversable v, Monad v) => StaticVector v where
-  type Index v :: Type
-  index :: v a -> Index v -> a
-  tabulate :: (Index v -> a) -> v a
+  construct :: (Lens' (v a) a -> a) -> v a
 
+  -- TODO weigh benefits
   size :: Proxy (v a) -> Int
   size _ = length (pure () :: v ())
-
-newtype E v = E (forall a. Lens' (v a) a)
 
 infixl 7 ^*, *^, ^/
 

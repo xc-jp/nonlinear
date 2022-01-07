@@ -3,7 +3,6 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TypeFamilies #-}
 
 -- | Adapted from [Linear.V1](https://hackage.haskell.org/package/linear-1.21.8/docs/Linear-V1.html)
 module Nonlinear.V1 where
@@ -14,8 +13,8 @@ import Data.Functor.Identity
 import Foreign (Storable)
 import GHC.Generics (Generic, Generic1)
 import GHC.Ix (Ix)
-import Nonlinear.Internal (Lens', view)
-import Nonlinear.Vector
+import Nonlinear.Internal (Lens')
+import Nonlinear.Vector (StaticVector (..))
 
 newtype V1 a = V1 {v1x :: a}
   deriving stock (Eq, Show, Read, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
@@ -23,9 +22,8 @@ newtype V1 a = V1 {v1x :: a}
   deriving (Eq1, Read1, Show1, Ord1, Applicative, Monad) via Identity
 
 instance StaticVector V1 where
-  type Index V1 = E V1
-  index v (E l) = view l v
-  tabulate f = V1 (f $ E _x)
+  construct f = V1 (f _x)
+  size _ = 1
 
 class R1 t where
   _x :: Lens' (t a) a
