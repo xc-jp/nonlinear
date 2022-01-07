@@ -16,17 +16,22 @@ import Foreign (Storable (..))
 import Foreign.Ptr (castPtr)
 import GHC.Generics (Generic, Generic1)
 import GHC.Ix (Ix (..))
-import Nonlinear.Internal (Lens')
+import Nonlinear.Internal (Lens', view)
 import Nonlinear.V1 (R1 (..))
 import Nonlinear.V2 (R2 (..), V2 (..))
 import Nonlinear.V3 (R3 (..), V3 (..))
-import Nonlinear.Vector ((*^))
+import Nonlinear.Vector
 
 -- TODO field accessors are nice, but the derived show instance is not.
 -- Either we drop the accessors, or we manually write the Show instance.
 -- Note that Show1 is already hand-rolled
 data V4 a = V4 {v4x :: !a, v4y :: !a, v4z :: !a, v4w :: !a}
   deriving stock (Eq, Show, Read, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
+
+instance StaticVector V4 where
+  type Index V4 = E V4
+  index v (E l) = view l v
+  tabulate f = V4 (f $ E _x) (f $ E _y) (f $ E _z) (f $ E _w)
 
 instance Applicative V4 where
   {-# INLINE pure #-}

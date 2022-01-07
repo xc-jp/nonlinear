@@ -14,12 +14,18 @@ import Data.Functor.Identity
 import Foreign (Storable)
 import GHC.Generics (Generic, Generic1)
 import GHC.Ix (Ix)
-import Nonlinear.Internal (Lens')
+import Nonlinear.Internal (Lens', view)
+import Nonlinear.Vector
 
 newtype V1 a = V1 {v1x :: a}
   deriving stock (Eq, Show, Read, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
   deriving newtype (Storable, Bounded, Ord, Num, Fractional, Floating, Semigroup, Monoid, Ix)
   deriving (Eq1, Read1, Show1, Ord1, Applicative, Monad) via Identity
+
+instance StaticVector V1 where
+  type Index V1 = E V1
+  index v (E l) = view l v
+  tabulate f = V1 (f $ E _x)
 
 class R1 t where
   _x :: Lens' (t a) a

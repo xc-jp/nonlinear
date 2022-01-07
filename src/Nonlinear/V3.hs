@@ -16,13 +16,18 @@ import Foreign (Storable (..))
 import Foreign.Ptr (castPtr)
 import GHC.Generics (Generic, Generic1)
 import GHC.Ix (Ix (..))
-import Nonlinear.Internal (Lens')
+import Nonlinear.Internal (Lens', view)
 import Nonlinear.V1 (R1 (..))
 import Nonlinear.V2 (R2 (..), V2 (..))
-import Nonlinear.Vector (dot)
+import Nonlinear.Vector
 
 data V3 a = V3 {v3x :: !a, v3y :: !a, v3z :: !a}
   deriving stock (Eq, Show, Read, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
+
+instance StaticVector V3 where
+  type Index V3 = E V3
+  index v (E l) = view l v
+  tabulate f = V3 (f $ E _x) (f $ E _y) (f $ E _z)
 
 instance Applicative V3 where
   {-# INLINE pure #-}
