@@ -25,6 +25,8 @@ import Nonlinear.V3
 import Nonlinear.V4
 import Nonlinear.Vector
 
+-- TODO SPECIALIZE pragmas
+
 -- | Build a look at view matrix
 lookAt ::
   (Floating a) =>

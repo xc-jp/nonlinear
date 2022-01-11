@@ -67,20 +67,20 @@ import Nonlinear.Quaternion
 import Nonlinear.V2
 import Nonlinear.V3
 import Nonlinear.V4
-import Nonlinear.Vector (scaled, (*^))
+import Nonlinear.Vector (StaticVector, scaled, (*^))
 
 -- | This is more restrictive than linear's @LensLike (Context a b) s t a b -> Lens (f s) (f t) (f a) (f b)@, but in return we get a much simpler implementation which should suffice in 99% of cases.
 column ::
-  Applicative f =>
+  StaticVector v =>
   Lens' a b ->
-  Lens' (f a) (f b)
+  Lens' (v a) (v b)
 column l = lens (fmap $ view l) (liftA2 (flip $ set l))
 {-# INLINE column #-}
 
-diagonal :: Monad m => m (m a) -> m a
+diagonal :: StaticVector v => v (v a) -> v a
 diagonal = join
 
-trace :: (Foldable m, Num a, Monad m) => m (m a) -> a
+trace :: (StaticVector v, Num a) => v (v a) -> a
 trace = sum . diagonal
 
 infixl 7 !*!
@@ -89,7 +89,7 @@ infixl 7 !*!
 --
 -- >>> V2 (V3 1 2 3) (V3 4 5 6) !*! V3 (V2 1 2) (V2 3 4) (V2 4 5)
 -- V2 (V2 19 25) (V2 43 58)
-(!*!) :: (Functor m, Foldable t, Applicative t, Applicative n, Num a) => m (t a) -> t (n a) -> m (n a)
+(!*!) :: (StaticVector m, StaticVector t, StaticVector n, Num a) => m (t a) -> t (n a) -> m (n a)
 f !*! g = fmap (\f' -> Foldable.foldl' (liftA2 (+)) (pure 0) $ liftA2 (*^) f' g) f
 
 infixl 7 !*
@@ -98,7 +98,7 @@ infixl 7 !*
 --
 -- >>> V2 (V3 1 2 3) (V3 4 5 6) !* V3 7 8 9
 -- V2 50 122
-(!*) :: (Applicative r, Functor m, Foldable r, Num a) => m (r a) -> r a -> m a
+(!*) :: (StaticVector m, StaticVector r, Num a) => m (r a) -> r a -> m a
 m !* v = fmap (\r -> Foldable.sum $ liftA2 (*) r v) m
 
 infixl 7 *!
@@ -111,7 +111,7 @@ infixl 7 *!
 -- (*!) :: (Metric r, Additive n, Num a) => r a -> r (n a) -> n a
 -- f *! g = dot f <$> distribute g
 
-(*!) :: (Num a, Functor f, Applicative t, Num (f a), Foldable t) => t a -> t (f a) -> f a
+(*!) :: (StaticVector f, StaticVector t, Num a, Num (f a)) => t a -> t (f a) -> f a
 f *! g = sum $ liftA2 (*^) f g
 
 infixl 7 *!!
@@ -120,7 +120,7 @@ infixl 7 *!!
 --
 -- >>> 5 *!! V2 (V2 1 2) (V2 3 4)
 -- V2 (V2 5 10) (V2 15 20)
-(*!!) :: (Functor m, Functor r, Num a) => a -> m (r a) -> m (r a)
+(*!!) :: (StaticVector m, StaticVector r, Num a) => a -> m (r a) -> m (r a)
 s *!! m = fmap (s *^) m
 {-# INLINE (*!!) #-}
 
@@ -130,14 +130,14 @@ infixl 7 !!*
 --
 -- >>> V2 (V2 1 2) (V2 3 4) !!* 5
 -- V2 (V2 5 10) (V2 15 20)
-(!!*) :: (Functor m, Functor r, Num a) => m (r a) -> a -> m (r a)
+(!!*) :: (StaticVector m, StaticVector r, Num a) => m (r a) -> a -> m (r a)
 (!!*) = flip (*!!)
 {-# INLINE (!!*) #-}
 
 infixl 7 !!/
 
 -- | Matrix-scalar division
-(!!/) :: (Applicative r, Fractional (r a), Functor m, Functor r, Fractional a) => m (r a) -> a -> m (r a)
+(!!/) :: (StaticVector r, StaticVector m, Fractional (r a), Fractional a) => m (r a) -> a -> m (r a)
 m !!/ s = fmap (/ pure s) m
 {-# INLINE (!!/) #-}
 
@@ -242,57 +242,58 @@ m33_to_m44 (V3 r1 r2 r3) = V4 (vector r1) (vector r2) (vector r3) (point 0)
 --  V4 (V4 1 0 0 0) (V4 0 1 0 0) (V4 0 0 1 0) (V4 0 0 0 1)
 --  >>> identity :: V3 (V3 Int)
 --  V3 (V3 1 0 0) (V3 0 1 0) (V3 0 0 1)
-identity :: (Num a, Traversable t, Applicative t) => t (t a)
+identity :: (StaticVector v, Num a) => v (v a)
 identity = scaled (pure 1)
+{-# INLINE identity #-}
 
 -- | Extract the translation vector (first three entries of the last
 --  column) from a 3x4 or 4x4 matrix.
-translation :: (Applicative t, R3 t, R4 v) => Lens' (t (v a)) (V3 a)
+translation :: (StaticVector t, R3 t, R4 v) => Lens' (t (v a)) (V3 a)
 translation = column _w . _xyz
 
 -- | Extract a 2x2 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m22 :: (Applicative t, R2 t, R2 v) => Lens' (t (v a)) (M22 a)
+_m22 :: (StaticVector t, R2 t, R2 v) => Lens' (t (v a)) (M22 a)
 _m22 = column _xy . _xy
 
 -- | Extract a 2x3 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m23 :: (Applicative t, R2 t, R3 v) => Lens' (t (v a)) (M23 a)
+_m23 :: (StaticVector t, R2 t, R3 v) => Lens' (t (v a)) (M23 a)
 _m23 = column _xyz . _xy
 
 -- | Extract a 2x4 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m24 :: (Applicative t, R2 t, R4 v) => Lens' (t (v a)) (M24 a)
+_m24 :: (StaticVector t, R2 t, R4 v) => Lens' (t (v a)) (M24 a)
 _m24 = column _xyzw . _xy
 
 -- | Extract a 3x2 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m32 :: (Applicative t, R3 t, R2 v) => Lens' (t (v a)) (M32 a)
+_m32 :: (StaticVector t, R3 t, R2 v) => Lens' (t (v a)) (M32 a)
 _m32 = column _xy . _xyz
 
 -- | Extract a 3x3 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m33 :: (Applicative t, R3 t, R3 v) => Lens' (t (v a)) (M33 a)
+_m33 :: (StaticVector t, R3 t, R3 v) => Lens' (t (v a)) (M33 a)
 _m33 = column _xyz . _xyz
 
 -- | Extract a 3x4 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m34 :: (Applicative t, R3 t, R4 v) => Lens' (t (v a)) (M34 a)
+_m34 :: (StaticVector t, R3 t, R4 v) => Lens' (t (v a)) (M34 a)
 _m34 = column _xyzw . _xyz
 
 -- | Extract a 4x2 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m42 :: (Applicative t, R4 t, R2 v) => Lens' (t (v a)) (M42 a)
+_m42 :: (StaticVector t, R4 t, R2 v) => Lens' (t (v a)) (M42 a)
 _m42 = column _xy . _xyzw
 
 -- | Extract a 4x3 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m43 :: (Applicative t, R4 t, R3 v) => Lens' (t (v a)) (M43 a)
+_m43 :: (StaticVector t, R4 t, R3 v) => Lens' (t (v a)) (M43 a)
 _m43 = column _xyz . _xyzw
 
 -- | Extract a 4x4 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
-_m44 :: (Applicative t, R4 t, R4 v) => Lens' (t (v a)) (M44 a)
+_m44 :: (StaticVector t, R4 t, R4 v) => Lens' (t (v a)) (M44 a)
 _m44 = column _xyzw . _xyzw
 
 -- | 2x2 matrix determinant.
@@ -385,7 +386,7 @@ inv33
 --
 -- > transpose (V3 (V2 1 2) (V2 3 4) (V2 5 6))
 -- V2 (V3 1 3 5) (V3 2 4 6)
-transpose :: (Traversable f, Applicative g) => f (g a) -> g (f a)
+transpose :: (StaticVector f, StaticVector g) => f (g a) -> g (f a)
 transpose = sequenceA
 {-# INLINE transpose #-}
 

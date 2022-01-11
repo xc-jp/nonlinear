@@ -45,7 +45,7 @@ import Nonlinear.Internal (ASetter', Lens', imap, set)
 class (Traversable v, Monad v) => StaticVector v where
   construct :: (Lens' (v a) a -> a) -> v a
 
-  -- TODO weigh benefits
+  -- TODO maybe remove, I suspect length may already not evaluate its first argument
   size :: Proxy (v a) -> Int
   size _ = length (pure () :: v ())
 

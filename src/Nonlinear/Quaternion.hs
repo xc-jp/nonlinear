@@ -65,6 +65,10 @@ instance Monad Quaternion where
       Quaternion _ (V3 _ _ d') = f d
   {-# INLINE (>>=) #-}
 
+instance StaticVector Quaternion where
+  construct f = Quaternion (f _w) (V3 (f _x) (f _y) (f _z))
+  size _ = 3
+
 instance Ix a => Ix (Quaternion a) where
   {-# SPECIALIZE instance Ix (Quaternion Int) #-}
 
