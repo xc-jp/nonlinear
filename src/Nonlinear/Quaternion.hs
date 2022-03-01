@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
@@ -32,7 +33,6 @@ import Data.Functor ((<&>))
 import Data.Functor.Classes
 import Foreign.Ptr (castPtr, plusPtr)
 import Foreign.Storable (Storable (..))
-import GHC.Arr (Ix (..))
 import GHC.Generics (Generic, Generic1)
 import Nonlinear.Internal
 import Nonlinear.V1
@@ -41,6 +41,12 @@ import Nonlinear.V3
 import Nonlinear.V4
 import Nonlinear.Vector
 import Prelude hiding (any)
+
+#if MIN_VERSION_base(4,14,0)
+import GHC.Ix (Ix (..))
+#else
+import Data.Ix (Ix (..))
+#endif
 
 -- | Quaternions
 data Quaternion a = Quaternion !a {-# UNPACK #-} !(V3 a)
@@ -75,13 +81,23 @@ instance Ix a => Ix (Quaternion a) where
     [Quaternion i1 i2 | i1 <- range (l1, u1), i2 <- range (l2, u2)]
   {-# INLINE range #-}
 
-  unsafeIndex (Quaternion l1 l2, Quaternion u1 u2) (Quaternion i1 i2) =
-    unsafeIndex (l1, u1) i1 * unsafeRangeSize (l2, u2) + unsafeIndex (l2, u2) i2
-  {-# INLINE unsafeIndex #-}
+  index (Quaternion l1 l2, Quaternion u1 u2) (Quaternion i1 i2) =
+    index (l1, u1) i1 * rangeSize (l2, u2) + index (l2, u2) i2
+  {-# INLINE index #-}
 
   inRange (Quaternion l1 l2, Quaternion u1 u2) (Quaternion i1 i2) =
     inRange (l1, u1) i1 && inRange (l2, u2) i2
   {-# INLINE inRange #-}
+
+#if MIN_VERSION_base(4,14,0)
+  unsafeIndex (Quaternion l1 l2, Quaternion u1 u2) (Quaternion i1 i2) =
+    unsafeIndex (l1, u1) i1 * unsafeRangeSize (l2, u2) + unsafeIndex (l2, u2) i2
+  {-# INLINE unsafeIndex #-}
+#else
+  index (Quaternion l1 l2, Quaternion u1 u2) (Quaternion i1 i2) =
+    index (l1, u1) i1 * rangeSize (l2, u2) + index (l2, u2) i2
+  {-# INLINE index #-}
+#endif
 
 instance Storable a => Storable (Quaternion a) where
   sizeOf _ = 4 * sizeOf (undefined :: a)

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
@@ -14,10 +15,15 @@ import Data.Functor.Classes
 import Foreign (Storable (..))
 import Foreign.Ptr (castPtr)
 import GHC.Generics (Generic, Generic1)
-import GHC.Ix (Ix (..))
 import Nonlinear.Internal (Lens')
 import Nonlinear.V1 (R1 (..))
 import Nonlinear.Vector (Vec (..), norm)
+
+#if MIN_VERSION_base(4,14,0)
+import GHC.Ix (Ix (..))
+#else
+import Data.Ix (Ix (..))
+#endif
 
 data V2 a = V2 {v2x :: !a, v2y :: !a}
   deriving stock (Eq, Show, Read, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
@@ -181,10 +187,16 @@ instance Ix a => Ix (V2 a) where
     [V2 i1 i2 | i1 <- range (l1, u1), i2 <- range (l2, u2)]
   {-# INLINE range #-}
 
-  unsafeIndex (V2 l1 l2, V2 u1 u2) (V2 i1 i2) =
-    unsafeIndex (l1, u1) i1 * unsafeRangeSize (l2, u2) + unsafeIndex (l2, u2) i2
-  {-# INLINE unsafeIndex #-}
-
   inRange (V2 l1 l2, V2 u1 u2) (V2 i1 i2) =
     inRange (l1, u1) i1 && inRange (l2, u2) i2
   {-# INLINE inRange #-}
+
+#if MIN_VERSION_base(4,14,0)
+  unsafeIndex (V2 l1 l2, V2 u1 u2) (V2 i1 i2) =
+    unsafeIndex (l1, u1) i1 * unsafeRangeSize (l2, u2) + unsafeIndex (l2, u2) i2
+  {-# INLINE unsafeIndex #-}
+#else
+  index (V2 l1 l2, V2 u1 u2) (V2 i1 i2) =
+    index (l1, u1) i1 * rangeSize (l2, u2) + index (l2, u2) i2
+  {-# INLINE index #-}
+#endif
