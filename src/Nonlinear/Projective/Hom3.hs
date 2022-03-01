@@ -8,26 +8,7 @@
 -- purpose means
 --
 -- Adapted from [Linear.Projection](https://hackage.haskell.org/package/linear-1.21.8/docs/Linear-Projection.html)
-module Nonlinear.Projective.Hom3
-  ( m33_to_m44,
-    m43_to_m44,
-    vector,
-    point,
-    normalizePoint,
-    translation,
-    mkTransformation,
-    mkTransformationMat,
-    lookAt,
-    perspective,
-    inversePerspective,
-    infinitePerspective,
-    inverseInfinitePerspective,
-    frustum,
-    inverseFrustum,
-    ortho,
-    inverseOrtho,
-  )
-where
+module Nonlinear.Projective.Hom3 where
 
 import Nonlinear.Internal (Lens')
 import Nonlinear.Matrix
