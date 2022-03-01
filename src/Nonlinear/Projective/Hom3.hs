@@ -11,6 +11,9 @@
 module Nonlinear.Projective.Hom3
   ( m33_to_m44,
     m43_to_m44,
+    vector,
+    point,
+    normalizePoint,
     translation,
     mkTransformation,
     mkTransformationMat,
@@ -47,6 +50,27 @@ m43_to_m44
       (V4 d e f 0)
       (V4 g h i 0)
       (V4 j k l 1)
+
+-- | Convert a 3-dimensional affine vector into a 4-dimensional homogeneous vector,
+-- i.e. sets the @w@ coordinate to 0.
+vector :: Num a => V3 a -> V4 a
+vector (V3 a b c) = V4 a b c 0
+{-# INLINE vector #-}
+
+-- | Convert a 3-dimensional affine point into a 4-dimensional homogeneous vector,
+-- i.e. sets the @w@ coordinate to 1.
+point :: Num a => V3 a -> V4 a
+point (V3 a b c) = V4 a b c 1
+{-# INLINE point #-}
+
+-- | Convert 4-dimensional projective coordinates to a 3-dimensional
+-- point. This operation may be denoted, @euclidean [x:y:z:w] = (x\/w,
+-- y\/w, z\/w)@ where the projective, homogeneous, coordinate
+-- @[x:y:z:w]@ is one of many associated with a single point @(x\/w,
+-- y\/w, z\/w)@.
+normalizePoint :: Fractional a => V4 a -> V3 a
+normalizePoint (V4 a b c w) = (1 / w) *^ V3 a b c
+{-# INLINE normalizePoint #-}
 
 -- | Convert a 3x3 matrix to a 4x4 matrix extending it with 0's in the new row and column.
 m33_to_m44 :: Num a => M33 a -> M44 a

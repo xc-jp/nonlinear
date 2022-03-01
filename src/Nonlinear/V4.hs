@@ -20,7 +20,7 @@ import Nonlinear.Internal (Lens')
 import Nonlinear.V1 (R1 (..))
 import Nonlinear.V2 (R2 (..), V2 (..))
 import Nonlinear.V3 (R3 (..), V3 (..))
-import Nonlinear.Vector (Vec (..), (*^))
+import Nonlinear.Vector (Vec (..))
 
 -- TODO field accessors are nice, but the derived show instance is not.
 -- Either we drop the accessors, or we manually write the Show instance.
@@ -127,27 +127,6 @@ instance Show1 V4 where
   liftShowsPrec f _ z (V4 a b c d) =
     showParen (z > 10) $
       showString "V4 " . f 11 a . showChar ' ' . f 11 b . showChar ' ' . f 11 c . showChar ' ' . f 11 d
-
--- | Convert a 3-dimensional affine vector into a 4-dimensional homogeneous vector,
--- i.e. sets the @w@ coordinate to 0.
-vector :: Num a => V3 a -> V4 a
-vector (V3 a b c) = V4 a b c 0
-{-# INLINE vector #-}
-
--- | Convert a 3-dimensional affine point into a 4-dimensional homogeneous vector,
--- i.e. sets the @w@ coordinate to 1.
-point :: Num a => V3 a -> V4 a
-point (V3 a b c) = V4 a b c 1
-{-# INLINE point #-}
-
--- | Convert 4-dimensional projective coordinates to a 3-dimensional
--- point. This operation may be denoted, @euclidean [x:y:z:w] = (x\/w,
--- y\/w, z\/w)@ where the projective, homogeneous, coordinate
--- @[x:y:z:w]@ is one of many associated with a single point @(x\/w,
--- y\/w, z\/w)@.
-normalizePoint :: Fractional a => V4 a -> V3 a
-normalizePoint (V4 a b c w) = (1 / w) *^ V3 a b c
-{-# INLINE normalizePoint #-}
 
 class R3 t => R4 t where
   _w :: Lens' (t a) a
