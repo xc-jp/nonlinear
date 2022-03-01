@@ -1,5 +1,6 @@
 -- |
--- Common projection matrices: e.g. perspective/orthographic transformation
+-- Functions for working with 3-dimensional homogeneous coordinates.
+-- This includes common projection matrices: e.g. perspective/orthographic transformation
 -- matrices.
 --
 -- Analytically derived inverses are also supplied, because they can be
@@ -7,7 +8,7 @@
 -- purpose means
 --
 -- Adapted from [Linear.Projection](https://hackage.haskell.org/package/linear-1.21.8/docs/Linear-Projection.html)
-module Nonlinear.Projection
+module Nonlinear.Projective.Hom3
   ( lookAt,
     perspective,
     inversePerspective,
@@ -17,15 +18,40 @@ module Nonlinear.Projection
     inverseFrustum,
     ortho,
     inverseOrtho,
+    translation,
+    mkTransformation,
+    mkTransformationMat,
   )
 where
 
+import Nonlinear.Internal (Lens')
 import Nonlinear.Matrix
+import Nonlinear.Quaternion
 import Nonlinear.V3
 import Nonlinear.V4
 import Nonlinear.Vector
 
 -- TODO SPECIALIZE pragmas
+
+-- | Extract the translation vector (first three entries of the last
+--  column) from a 3x4 or 4x4 matrix.
+translation :: (Vec t, R3 t, R4 v) => Lens' (t (v a)) (V3 a)
+translation = column _w . _xyz
+
+-- | Build a transformation matrix from a rotation matrix and a
+-- translation vector.
+mkTransformationMat :: Num a => M33 a -> V3 a -> M44 a
+mkTransformationMat (V3 r1 r2 r3) (V3 tx ty tz) =
+  V4 (snoc3 r1 tx) (snoc3 r2 ty) (snoc3 r3 tz) (V4 0 0 0 1)
+  where
+    snoc3 (V3 x y z) = V4 x y z
+{-# INLINE mkTransformationMat #-}
+
+-- | Build a transformation matrix from a rotation expressed as a
+--  'Quaternion' and a translation vector.
+mkTransformation :: Num a => Quaternion a -> V3 a -> M44 a
+mkTransformation = mkTransformationMat . fromQuaternion
+{-# INLINE mkTransformation #-}
 
 -- | Build a look at view matrix
 lookAt ::

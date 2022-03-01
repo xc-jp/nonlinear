@@ -14,7 +14,7 @@ library
   exposed-modules:
     Nonlinear
     Nonlinear.Matrix
-    Nonlinear.Projection
+    Nonlinear.Projective.Hom3
     Nonlinear.Quaternion
     Nonlinear.V1
     Nonlinear.V2

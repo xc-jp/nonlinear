@@ -30,11 +30,8 @@ module Nonlinear.Matrix
     inv33,
     inv44,
     identity,
-    translation,
     transpose,
     fromQuaternion,
-    mkTransformation,
-    mkTransformationMat,
     _m22,
     _m23,
     _m24,
@@ -177,21 +174,6 @@ fromQuaternion (Quaternion w (V3 x y z)) =
     zw = z * w
 {-# INLINE fromQuaternion #-}
 
--- | Build a transformation matrix from a rotation matrix and a
--- translation vector.
-mkTransformationMat :: Num a => M33 a -> V3 a -> M44 a
-mkTransformationMat (V3 r1 r2 r3) (V3 tx ty tz) =
-  V4 (snoc3 r1 tx) (snoc3 r2 ty) (snoc3 r3 tz) (V4 0 0 0 1)
-  where
-    snoc3 (V3 x y z) = V4 x y z
-{-# INLINE mkTransformationMat #-}
-
--- | Build a transformation matrix from a rotation expressed as a
---  'Quaternion' and a translation vector.
-mkTransformation :: Num a => Quaternion a -> V3 a -> M44 a
-mkTransformation = mkTransformationMat . fromQuaternion
-{-# INLINE mkTransformation #-}
-
 -- | Convert from a 4x3 matrix to a 4x4 matrix, extending it with the @[ 0 0 0 1 ]@ column vector
 m43_to_m44 :: Num a => M43 a -> M44 a
 m43_to_m44
@@ -220,11 +202,6 @@ m33_to_m44 (V3 r1 r2 r3) = V4 (vector r1) (vector r2) (vector r3) (point 0)
 identity :: (Vec v, Num a) => v (v a)
 identity = scaled (pure 1)
 {-# INLINE identity #-}
-
--- | Extract the translation vector (first three entries of the last
---  column) from a 3x4 or 4x4 matrix.
-translation :: (Vec t, R3 t, R4 v) => Lens' (t (v a)) (V3 a)
-translation = column _w . _xyz
 
 -- | Extract a 2x2 matrix from a matrix of higher dimensions by dropping excess
 --  rows and columns.
