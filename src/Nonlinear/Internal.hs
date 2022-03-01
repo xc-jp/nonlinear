@@ -28,10 +28,13 @@ newtype Tally a = Tally {unTally :: Int -> (Int, a)}
   deriving (Functor)
 
 instance Applicative Tally where
+  {-# INLINE pure #-}
   pure a = Tally $ \i -> (i, a)
+  {-# INLINE (<*>) #-}
   (<*>) = ap
 
 instance Monad Tally where
+  {-# INLINE (>>=) #-}
   Tally sa >>= asb = Tally $ \i -> let (i', a) = sa i in unTally (asb a) i'
 
 {-# INLINE click #-}
