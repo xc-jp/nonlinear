@@ -31,8 +31,6 @@ import Nonlinear.V3
 import Nonlinear.V4
 import Nonlinear.Vector
 
--- TODO SPECIALIZE pragmas
-
 -- | Extract the translation vector (first three entries of the last
 --  column) from a 3x4 or 4x4 matrix.
 translation :: (Vec t, R3 t, R4 v) => Lens' (t (v a)) (V3 a)
@@ -52,6 +50,9 @@ mkTransformationMat (V3 r1 r2 r3) (V3 tx ty tz) =
 mkTransformation :: Num a => Quaternion a -> V3 a -> M44 a
 mkTransformation = mkTransformationMat . fromQuaternion
 {-# INLINE mkTransformation #-}
+
+{-# SPECIALIZE lookAt :: V3 Float -> V3 Float -> V3 Float -> M44 Float #-}
+{-# SPECIALIZE lookAt :: V3 Double -> V3 Double -> V3 Double -> M44 Double #-}
 
 -- | Build a look at view matrix
 lookAt ::
@@ -77,6 +78,9 @@ lookAt eye center up =
     xd = -dot xa eye
     yd = -dot ya eye
     zd = dot za eye
+
+{-# SPECIALIZE perspective :: Float -> Float -> Float -> Float -> M44 Float #-}
+{-# SPECIALIZE perspective :: Double -> Double -> Double -> Double -> M44 Double #-}
 
 -- | Build a matrix for a symmetric perspective-view frustum
 perspective ::
@@ -109,6 +113,9 @@ perspective fovy aspect near far =
     w = 1 / (oof - oon) -- 13 bits error reduced to 0.17
     -- w = -(2 * far * near) / fmn
 
+{-# SPECIALIZE inversePerspective :: Float -> Float -> Float -> Float -> M44 Float #-}
+{-# SPECIALIZE inversePerspective :: Double -> Double -> Double -> Double -> M44 Double #-}
+
 -- | Build an inverse perspective matrix
 inversePerspective ::
   Floating a =>
@@ -135,6 +142,9 @@ inversePerspective fovy aspect near far =
     d = oon + oof
     oon = 0.5 / near
     oof = 0.5 / far
+
+{-# SPECIALIZE frustum :: Float -> Float -> Float -> Float -> Float -> Float -> M44 Float #-}
+{-# SPECIALIZE frustum :: Double -> Double -> Double -> Double -> Double -> Double -> M44 Double #-}
 
 -- | Build a perspective matrix per the classic @glFrustum@ arguments.
 frustum ::
@@ -169,6 +179,8 @@ frustum l r b t n f =
     c = negate (f + n) / fmn
     d = (-2 * f * n) / fmn
 
+{-# SPECIALIZE inverseFrustum :: Float -> Float -> Float -> Float -> Float -> Float -> M44 Float #-}
+{-# SPECIALIZE inverseFrustum :: Double -> Double -> Double -> Double -> Double -> Double -> M44 Double #-}
 inverseFrustum ::
   Floating a =>
   -- | Left
@@ -200,6 +212,9 @@ inverseFrustum l r b t n f =
     cd = (f + n) * hrnf
     rd = (n - f) * hrnf
 
+{-# SPECIALIZE infinitePerspective :: Float -> Float -> Float -> M44 Float #-}
+{-# SPECIALIZE infinitePerspective :: Double -> Double -> Double -> M44 Double #-}
+
 -- | Build a matrix for a symmetric perspective-view frustum with a far plane at infinite
 infinitePerspective ::
   Floating a =>
@@ -225,6 +240,8 @@ infinitePerspective fovy a n =
     y = (2 * n) / (t - b)
     w = -2 * n
 
+{-# SPECIALIZE inverseInfinitePerspective :: Float -> Float -> Float -> M44 Float #-}
+{-# SPECIALIZE inverseInfinitePerspective :: Double -> Double -> Double -> M44 Double #-}
 inverseInfinitePerspective ::
   Floating a =>
   -- | FOV (y direction, in radians)
@@ -249,6 +266,9 @@ inverseInfinitePerspective fovy a n =
     rx = (r - l) * hrn
     ry = (t - b) * hrn
     rw = -hrn
+
+{-# SPECIALIZE ortho :: Float -> Float -> Float -> Float -> Float -> Float -> M44 Float #-}
+{-# SPECIALIZE ortho :: Double -> Double -> Double -> Double -> Double -> Double -> M44 Double #-}
 
 -- | Build an orthographic perspective matrix from 6 clipping planes.
 -- This matrix takes the region delimited by these planes and maps it
@@ -297,6 +317,9 @@ ortho l r b t n f =
     x = recip (l - r)
     y = recip (b - t)
     z = recip (n - f)
+
+{-# SPECIALIZE inverseOrtho :: Float -> Float -> Float -> Float -> Float -> Float -> M44 Float #-}
+{-# SPECIALIZE inverseOrtho :: Double -> Double -> Double -> Double -> Double -> Double -> M44 Double #-}
 
 -- | Build an inverse orthographic perspective matrix from 6 clipping planes
 inverseOrtho ::
