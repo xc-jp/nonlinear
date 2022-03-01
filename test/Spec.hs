@@ -43,7 +43,7 @@ instance (Arbitrary a, forall a. Arbitrary a => Arbitrary (f a)) => Arbitrary (V
 
 withVSome ::
   ( forall v.
-    (forall a. Eq a => Eq (v a), Monad v, Traversable v, R1 v) =>
+    (forall a. Eq a => Eq (v a), Vec v, Monad v, Traversable v, R1 v) =>
     f (v a) ->
     r
   ) ->

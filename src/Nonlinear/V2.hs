@@ -17,14 +17,13 @@ import GHC.Generics (Generic, Generic1)
 import GHC.Ix (Ix (..))
 import Nonlinear.Internal (Lens')
 import Nonlinear.V1 (R1 (..))
-import Nonlinear.Vector (StaticVector (..), norm)
+import Nonlinear.Vector (Vec (..), norm)
 
 data V2 a = V2 {v2x :: !a, v2y :: !a}
   deriving stock (Eq, Show, Read, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
 
-instance StaticVector V2 where
+instance Vec V2 where
   construct f = V2 (f _x) (f _y)
-  size _ = 2
 
 instance Applicative V2 where
   {-# INLINE pure #-}

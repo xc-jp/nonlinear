@@ -19,14 +19,13 @@ import GHC.Ix (Ix (..))
 import Nonlinear.Internal (Lens')
 import Nonlinear.V1 (R1 (..))
 import Nonlinear.V2 (R2 (..), V2 (..))
-import Nonlinear.Vector (StaticVector (..), dot)
+import Nonlinear.Vector (Vec (..), dot)
 
 data V3 a = V3 {v3x :: !a, v3y :: !a, v3z :: !a}
   deriving stock (Eq, Show, Read, Bounded, Ord, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
 
-instance StaticVector V3 where
+instance Vec V3 where
   construct f = V3 (f _x) (f _y) (f _z)
-  size _ = 3
 
 instance Applicative V3 where
   {-# INLINE pure #-}
