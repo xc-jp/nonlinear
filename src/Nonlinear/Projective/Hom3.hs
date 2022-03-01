@@ -9,7 +9,12 @@
 --
 -- Adapted from [Linear.Projection](https://hackage.haskell.org/package/linear-1.21.8/docs/Linear-Projection.html)
 module Nonlinear.Projective.Hom3
-  ( lookAt,
+  ( m33_to_m44,
+    m43_to_m44,
+    translation,
+    mkTransformation,
+    mkTransformationMat,
+    lookAt,
     perspective,
     inversePerspective,
     infinitePerspective,
@@ -18,9 +23,6 @@ module Nonlinear.Projective.Hom3
     inverseFrustum,
     ortho,
     inverseOrtho,
-    translation,
-    mkTransformation,
-    mkTransformationMat,
   )
 where
 
@@ -30,6 +32,25 @@ import Nonlinear.Quaternion
 import Nonlinear.V3
 import Nonlinear.V4
 import Nonlinear.Vector
+
+-- | Convert from a 4x3 matrix to a 4x4 matrix, extending it with the @[ 0 0 0 1 ]@ column vector
+m43_to_m44 :: Num a => M43 a -> M44 a
+m43_to_m44
+  ( V4
+      (V3 a b c)
+      (V3 d e f)
+      (V3 g h i)
+      (V3 j k l)
+    ) =
+    V4
+      (V4 a b c 0)
+      (V4 d e f 0)
+      (V4 g h i 0)
+      (V4 j k l 1)
+
+-- | Convert a 3x3 matrix to a 4x4 matrix extending it with 0's in the new row and column.
+m33_to_m44 :: Num a => M33 a -> M44 a
+m33_to_m44 (V3 r1 r2 r3) = V4 (vector r1) (vector r2) (vector r3) (point 0)
 
 -- | Extract the translation vector (first three entries of the last
 --  column) from a 3x4 or 4x4 matrix.

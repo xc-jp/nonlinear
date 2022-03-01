@@ -21,8 +21,6 @@ module Nonlinear.Matrix
     M42,
     M43,
     M44,
-    m33_to_m44,
-    m43_to_m44,
     det22,
     det33,
     det44,
@@ -173,25 +171,6 @@ fromQuaternion (Quaternion w (V3 x y z)) =
     yw = y * w
     zw = z * w
 {-# INLINE fromQuaternion #-}
-
--- | Convert from a 4x3 matrix to a 4x4 matrix, extending it with the @[ 0 0 0 1 ]@ column vector
-m43_to_m44 :: Num a => M43 a -> M44 a
-m43_to_m44
-  ( V4
-      (V3 a b c)
-      (V3 d e f)
-      (V3 g h i)
-      (V3 j k l)
-    ) =
-    V4
-      (V4 a b c 0)
-      (V4 d e f 0)
-      (V4 g h i 0)
-      (V4 j k l 1)
-
--- | Convert a 3x3 matrix to a 4x4 matrix extending it with 0's in the new row and column.
-m33_to_m44 :: Num a => M33 a -> M44 a
-m33_to_m44 (V3 r1 r2 r3) = V4 (vector r1) (vector r2) (vector r3) (point 0)
 
 -- | The identity matrix for any dimension vector.
 --
