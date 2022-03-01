@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
@@ -15,12 +16,17 @@ import Data.Functor.Classes
 import Foreign (Storable (..))
 import Foreign.Ptr (castPtr)
 import GHC.Generics (Generic, Generic1)
-import GHC.Ix (Ix (..))
 import Nonlinear.Internal (Lens')
 import Nonlinear.V1 (R1 (..))
 import Nonlinear.V2 (R2 (..), V2 (..))
 import Nonlinear.V3 (R3 (..), V3 (..))
 import Nonlinear.Vector (Vec (..))
+
+#if MIN_VERSION_base(4,14,0)
+import GHC.Ix (Ix (..))
+#else
+import Data.Ix (Ix (..))
+#endif
 
 -- TODO field accessors are nice, but the derived show instance is not.
 -- Either we drop the accessors, or we manually write the Show instance.
@@ -283,6 +289,13 @@ instance Ix a => Ix (V4 a) where
     ]
   {-# INLINE range #-}
 
+  inRange (V4 l1 l2 l3 l4, V4 u1 u2 u3 u4) (V4 i1 i2 i3 i4) =
+    inRange (l1, u1) i1 && inRange (l2, u2) i2
+      && inRange (l3, u3) i3
+      && inRange (l4, u4) i4
+  {-# INLINE inRange #-}
+
+#if MIN_VERSION_base(4,14,0)
   unsafeIndex (V4 l1 l2 l3 l4, V4 u1 u2 u3 u4) (V4 i1 i2 i3 i4) =
     unsafeIndex (l4, u4) i4 + unsafeRangeSize (l4, u4)
       * ( unsafeIndex (l3, u3) i3 + unsafeRangeSize (l3, u3)
@@ -291,9 +304,13 @@ instance Ix a => Ix (V4 a) where
               )
         )
   {-# INLINE unsafeIndex #-}
-
-  inRange (V4 l1 l2 l3 l4, V4 u1 u2 u3 u4) (V4 i1 i2 i3 i4) =
-    inRange (l1, u1) i1 && inRange (l2, u2) i2
-      && inRange (l3, u3) i3
-      && inRange (l4, u4) i4
-  {-# INLINE inRange #-}
+#else
+  index (V4 l1 l2 l3 l4, V4 u1 u2 u3 u4) (V4 i1 i2 i3 i4) =
+    index (l4, u4) i4 + rangeSize (l4, u4)
+      * ( index (l3, u3) i3 + rangeSize (l3, u3)
+            * ( index (l2, u2) i2 + rangeSize (l2, u2)
+                  * index (l1, u1) i1
+              )
+        )
+  {-# INLINE index #-}
+#endif

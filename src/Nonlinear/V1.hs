@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
@@ -12,9 +13,13 @@ import Data.Functor.Classes
 import Data.Functor.Identity
 import Foreign (Storable)
 import GHC.Generics (Generic, Generic1)
-import GHC.Ix (Ix)
 import Nonlinear.Internal (Lens')
 import Nonlinear.Vector (Vec (..))
+#if MIN_VERSION_base(4,14,0)
+import GHC.Ix (Ix)
+#else
+import Data.Ix (Ix)
+#endif
 
 newtype V1 a = V1 {v1x :: a}
   deriving stock (Eq, Show, Read, Functor, Foldable, Traversable, Generic, Generic1, Data, Typeable)
