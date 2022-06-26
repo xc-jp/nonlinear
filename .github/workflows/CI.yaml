@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: cachix/install-nix-action@v16
       - name: Build dependencies
         run: nix develop --command ghc --version
       - name: Build nonlinear
