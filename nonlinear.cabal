@@ -3,11 +3,13 @@ version:            0.1.0
 author:             Jonas Carpay
 maintainer:         jonas@cross-compass.com
 copyright:          2022 Cross Compass Ltd
-category:           Web
+category:           Math,Algebra
 build-type:         Simple
 cabal-version:      >=1.10
 license:            BSD3
 license-file:       LICENSE
+homepage:           https://github.com/xc-jp/nonlinear
+bug-reports:        https://github.com/xc-jp/nonlinear/issues
 extra-source-files:
   CHANGELOG.md
   README.md
